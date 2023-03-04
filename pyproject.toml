@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "pycql2"
+version = "0.1.0"
+description = "Pydantic models for OGC cql2-json and parser for cql2-text."
+authors = ["Erik Seglem <erik.seglem@gmail.com>"]
+include = ["pycql2/cql2.lark"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^1.10.5"
+geojson-pydantic = "^0.5.0"
+lark = "^1.1.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+black = "^23.1.0"
+ruff = "^0.0.253"
+mypy = "^1.0.1"
+hypothesis = "^6.68.2"
+pre-commit = "^3.1.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

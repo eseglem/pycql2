@@ -1,0 +1,278 @@
+?boolean_expression: boolean_term (_OR boolean_term)*
+?boolean_term: boolean_factor (_AND boolean_factor)*
+?boolean_factor: boolean_primary
+               | _NOT boolean_primary                 -> not_
+?boolean_primary: predicate
+                | BOOLEAN_LITERAL
+                | "(" boolean_expression ")"
+
+?predicate: comparison_predicate
+          | spatial_predicate
+          | temporal_predicate
+          | array_predicate
+
+// Comparison Predicate
+?comparison_predicate: binary_comparison_predicate
+                     | is_like_predicate
+                     | is_between_predicate
+                     | is_in_list_predicate
+                     | is_null_predicate
+
+?binary_comparison_predicate: scalar_expression "=" scalar_expression      -> eq
+                            | scalar_expression "<" ">" scalar_expression  -> neq
+                            | scalar_expression "<" scalar_expression      -> lt
+                            | scalar_expression ">" scalar_expression      -> gt
+                            | scalar_expression "<" "=" scalar_expression  -> lteq
+                            | scalar_expression ">" "=" scalar_expression  -> gteq
+
+?scalar_expression: character_clause
+                  | SIGNED_NUMBER
+                  | instant_literal
+                  | arithmetic_expression
+                  | boolean_expression
+                  | property_name
+                  | function
+
+// Like Predicate
+is_like_predicate: character_expression _LIKE pattern_expression       -> like
+                 | character_expression _NOT _LIKE pattern_expression  -> not_like
+
+?pattern_expression: "CASEI"i "(" pattern_expression ")"    -> casei
+                   | "ACCENTI"i "(" pattern_expression ")"  -> accenti
+                   | CHARACTER_LITERAL
+
+// Between Predicate
+is_between_predicate: numeric_expression _BETWEEN numeric_expression _AND numeric_expression         -> is_between
+                    | numeric_expression _NOT _BETWEEN numeric_expression _AND numeric_expression    -> is_not_between
+?numeric_expression: arithmetic_expression
+                   | SIGNED_NUMBER
+                   | property_name
+                   | function
+
+
+// In List Predicate
+
+is_in_list_predicate: scalar_expression _IN "(" list_values ")"         -> in_list
+                    | scalar_expression _NOT _IN "(" list_values ")"    -> not_in_list
+list_values: scalar_expression ("," scalar_expression)*
+
+// Is Null Predicate
+
+is_null_predicate: is_null_operand _IS _NULL        -> is_null
+                 | is_null_operand _IS _NOT _NULL   -> is_not_null
+?is_null_operand: character_clause
+                | SIGNED_NUMBER
+                | temporal_literal
+                | spatial_literal
+                | arithmetic_expression
+                | boolean_expression
+                | property_name
+                | function
+
+// Spatial Predicate
+spatial_predicate: SPATIAL_OPERATOR "(" geom_expression "," geom_expression ")"
+?geom_expression: spatial_literal
+                | property_name
+                | function
+SPATIAL_OPERATOR: "S_INTERSECTS"i
+                | "S_EQUALS"i
+                | "S_DISJOINT"i
+                | "S_TOUCHES"i
+                | "S_WITHIN"i
+                | "S_OVERLAPS"i
+                | "S_CROSSES"i
+                | "S_CONTAINS"i
+
+// Temporal Predicate
+temporal_predicate: TEMPORAL_OPERATOR "(" temporal_expression "," temporal_expression ")"
+?temporal_expression: temporal_literal
+                    | property_name
+                    | function
+TEMPORAL_OPERATOR: "T_AFTER"i
+                 | "T_BEFORE"i
+                 | "T_CONTAINS"i
+                 | "T_DISJOINT"i
+                 | "T_DURING"i
+                 | "T_EQUALS"i
+                 | "T_FINISHEDBY"i
+                 | "T_FINISHES"i
+                 | "T_INTERSECTS"i
+                 | "T_MEETS"i
+                 | "T_METBY"i
+                 | "T_OVERLAPPEDBY"i
+                 | "T_OVERLAPS"i
+                 | "T_STARTEDBY"i
+                 | "T_STARTS"i
+
+// Array Predicate
+array_predicate: ARRAY_OPERATOR "(" array_expression "," array_expression ")"
+?array_expression: array_literal
+                 | property_name
+                 | function
+array_literal: "(" ")"
+             | "(" array_element ("," array_element)* ")"
+?array_element: character_clause
+              | SIGNED_NUMBER
+              | temporal_literal
+              | spatial_literal
+              | array_literal
+              | arithmetic_expression
+              | boolean_expression
+              | property_name
+              | function
+
+ARRAY_OPERATOR: "A_EQUALS"i
+              | "A_CONTAINS"i
+              | "A_CONTAINEDBY"i
+              | "A_OVERLAPS"i
+
+// Arithmetic definitions
+?arithmetic_expression: arithmetic_term
+                      | arithmetic_expression "+" arithmetic_term  -> plus
+                      | arithmetic_expression "-" arithmetic_term  -> minus
+?arithmetic_term: power_term
+                | arithmetic_term "*" power_term     -> multiply
+                | arithmetic_term "/" power_term     -> divide
+                | arithmetic_term "%" power_term     -> modulus
+                | arithmetic_term "div"i power_term  -> int_divide
+?power_term: arithmetic_factor
+           | arithmetic_factor "^" arithmetic_factor -> power
+?arithmetic_factor: arithmetic_operand
+                  | "-" arithmetic_operand                          -> negative
+                  | "(" arithmetic_expression ")"
+?arithmetic_operand: SIGNED_NUMBER
+                   | property_name
+                   | function
+
+// Character literal, property name, and function name definitions
+ESCAPED_QUOTE: "''"
+CHARACTER_LITERAL: "'" (ALPHA | DIGIT | ESCAPED_QUOTE)* "'"
+
+ALPHA: /[\u0007-\u000D]/
+     | /[\u0020-\u0026]/
+     | /[\u0028-\u002F]/
+     | /[\u003A-\uD7FF]/
+     | /[\uE000-\uFFFD]/
+     | /[\U00010000-\U0010FFFF]/
+
+// Identifier
+IDENTIFIER: IDENTIFIER_START IDENTIFIER_PART*
+IDENTIFIER_PART: IDENTIFIER_START
+               | "."
+               | DIGIT
+               | /[\u0300-\u036F]/
+               | /[\u203F-\u2040]/
+IDENTIFIER_START: ":"
+                | "_"
+                | UCASE_LETTER
+                | LCASE_LETTER
+                | /[\u00C0-\u00D6]/
+                | /[\u00D8-\u00F6]/
+                | /[\u00F8-\u02FF]/
+                | /[\u0370-\u037D]/
+                | /[\u037F-\u1FFE]/
+                | /[\u200C-\u200D]/
+                | /[\u2070-\u218F]/
+                | /[\u2C00-\u2FEF]/
+                | /[\u3001-\uD7FF]/
+                | /[\uF900-\uFDCF]/
+                | /[\uFDF0-\uFFFD]/
+                | /[\U00010000-\U0010FFFF]/
+
+// Property Name
+property_name: IDENTIFIER
+             | "\"" IDENTIFIER "\""
+
+// Function
+function: IDENTIFIER "(" argument_list* ")"
+argument_list: _argument ("," _argument)*
+_argument: character_clause
+         | SIGNED_NUMBER
+         | temporal_literal
+         | spatial_literal
+         | property_name
+         | function
+
+?character_expression: character_clause
+                     | property_name
+                     | function
+?character_clause: "CASEI"i "(" character_expression ")"      -> casei
+                 | "ACCENTI"i "(" character_expression ")"    -> accenti
+                 | CHARACTER_LITERAL
+
+// WKT Definitions
+
+// Note: This does not parse `EMPTY` WKT but it is not included in CQL2 spec.
+// Note: This does not handle `Z` in the WKT despite allowing 3D coordinates.
+?spatial_literal: point
+                | linestring
+                | polygon
+                | multi_point
+                | multi_linestring
+                | multi_polygon
+                | geometry_collection
+                | bbox
+
+point: "POINT"i point_coordinates
+linestring: "LINESTRING"i linestring_coordinates
+polygon: "POLYGON"i polygon_coordinates
+multi_point: "MULTIPOINT"i multi_point_coordinates
+multi_linestring: "MULTILINESTRING"i multi_linestring_coordinates
+multi_polygon: "MULTIPOLYGON"i multi_polygon_coordinates
+geometry_collection: "GEOMETRYCOLLECTION"i "(" spatial_literal ("," spatial_literal)* ")"
+bbox: "BBOX"i "(" SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER ["," SIGNED_NUMBER "," SIGNED_NUMBER] ")"
+// WKT Coordinates
+coordinate: SIGNED_NUMBER SIGNED_NUMBER [SIGNED_NUMBER]
+point_coordinates: "(" coordinate ")"
+// BNF says linestring only requires one coordinate, but its not a line without 2 points.
+linestring_coordinates: "(" coordinate ("," coordinate)+ ")"
+// BNF does not include linear ring, but you cannot have a polygon without 4 points.
+linear_ring_coordinates: "(" coordinate "," coordinate "," coordinate ("," coordinate)+ ")"
+polygon_coordinates:  "(" linear_ring_coordinates ("," linear_ring_coordinates)* ")"
+multi_point_coordinates: "(" coordinate ("," coordinate)+ ")"
+multi_linestring_coordinates: "(" linestring_coordinates ("," linestring_coordinates)* ")"
+multi_polygon_coordinates: "(" polygon_coordinates ("," polygon_coordinates)* ")"
+
+// Date and Time Definitions
+?temporal_literal: instant_literal | interval_literal
+?instant_literal: date_instant | timestamp_instant
+date_instant: "DATE"i "(" date_instant_string ")"
+?date_instant_string: "'" DATE "'"
+timestamp_instant: "TIMESTAMP"i "(" timestamp_instant_string ")"
+?timestamp_instant_string: "'" DATE_TIME "'"
+interval_literal: "INTERVAL"i "(" instant_paramater "," instant_paramater ")"
+?instant_paramater: date_instant_string
+                  | timestamp_instant_string
+                  | DOTDOT
+                  | property_name
+                  | function
+DATE: DIGIT DIGIT DIGIT DIGIT "-" DIGIT DIGIT "-" DIGIT DIGIT
+TIME: DIGIT DIGIT ":" DIGIT DIGIT ":" DIGIT DIGIT ["." DIGIT+]
+DATE_TIME: DATE "T" TIME "Z"
+
+// Defined so we can keep the string as part of instant_parameter
+DOTDOT: "'..'"
+
+// General keywords which are used in a few places.
+_OR: "OR"i
+_AND: "AND"i
+_NOT: "NOT"i
+
+_LIKE: "LIKE"i
+_BETWEEN: "BETWEEN"i
+_IN: "IN"i
+_IS: "IS"i
+_NULL: "NULL"i
+
+// Need to increase priority to ensure it is not considered an IDENTIFIER
+BOOLEAN_LITERAL.2: "TRUE"i | "FALSE"i
+
+// Imports from common instead od re-defining
+%import common.DIGIT
+%import common.SIGNED_NUMBER
+%import common.LCASE_LETTER
+%import common.UCASE_LETTER
+
+// Ignore White Space
+%import common.WS
+%ignore WS

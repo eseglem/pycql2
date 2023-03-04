@@ -1,0 +1,14 @@
+{
+  "op": "not",
+  "args": [
+    {
+      "op": "like",
+      "args": [
+        {
+          "property": "name"
+        },
+        "foo%"
+      ]
+    }
+  ]
+}

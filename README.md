@@ -17,3 +17,9 @@ The cql2-text output from the pydantic models is opinionated and explicit. These
     - This means that many outputs include a set of parentheses around the whole string. While this is not ideal, it is also not incorrect. Once tests are in place, they can be used to determine if a safe and easy way exists to remove them.
 - Timestamps always contain decimal seconds.
 - Floats ending in `.0` will include the `.0` in the text. Where other libraries such as `shapely` will not include them in WKT.
+
+---
+
+The tests have been created to exercise various parts of the parsers, and are not meant to serve as realistic examples. Parts like geometries may not make sense but are valid per the specs.
+
+Each file in `tests/data/json/` is a standalone `cql2-json` example. There will be at least one corresponding file in `tests/data/text` which is a `cql2-text` equivalent. These corresponding examples should always convert back and forth identically. Since there are multiple ways to write the same thing in `cql2-text` there may be additional numbered alternative examples like `-alt01`. These will all parse to the same json, which in turn will output the main text example.

@@ -1,0 +1,1 @@
+"value" IS NULL OR "value" BETWEEN 10.0 AND 20.0

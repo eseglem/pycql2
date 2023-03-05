@@ -203,7 +203,8 @@ _argument: character_clause
 // WKT Definitions
 
 // Note: This does not parse `EMPTY` WKT but it is not included in CQL2 spec.
-// Note: This does not handle `Z` in the WKT despite allowing 3D coordinates.
+// Note: The BNF does not handle `Z` in the WKT despite allowing 3D coordinates.
+// Note: The BNF allows for bbox inside GeometryCollection but it is not allowed in WKT.
 ?spatial_literal: point
                 | linestring
                 | polygon
@@ -213,12 +214,12 @@ _argument: character_clause
                 | geometry_collection
                 | bbox
 
-point: "POINT"i point_coordinates
-linestring: "LINESTRING"i linestring_coordinates
-polygon: "POLYGON"i polygon_coordinates
-multi_point: "MULTIPOINT"i multi_point_coordinates
-multi_linestring: "MULTILINESTRING"i multi_linestring_coordinates
-multi_polygon: "MULTIPOLYGON"i multi_polygon_coordinates
+point: "POINT"i "Z"i? point_coordinates
+linestring: "LINESTRING"i "Z"i? linestring_coordinates
+polygon: "POLYGON"i "Z"i? polygon_coordinates
+multi_point: "MULTIPOINT"i "Z"i? multi_point_coordinates
+multi_linestring: "MULTILINESTRING"i "Z"i? multi_linestring_coordinates
+multi_polygon: "MULTIPOLYGON"i "Z"i? multi_polygon_coordinates
 geometry_collection: "GEOMETRYCOLLECTION"i "(" spatial_literal ("," spatial_literal)* ")"
 bbox: "BBOX"i "(" SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER ["," SIGNED_NUMBER "," SIGNED_NUMBER] ")"
 // WKT Coordinates

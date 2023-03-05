@@ -1,0 +1,21 @@
+{
+  "op": "or",
+  "args": [
+    {
+      "op": "isNull",
+      "args": {
+        "property": "value"
+      }
+    },
+    {
+      "op": "between",
+      "args": [
+        {
+          "property": "value"
+        },
+        10,
+        20
+      ]
+    }
+  ]
+}

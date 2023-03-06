@@ -11,13 +11,14 @@ pydantic = "^1.10.5"
 geojson-pydantic = "^0.5.0"
 lark = "^1.1.5"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^6.2.5"
 black = "^23.1.0"
 ruff = "^0.0.253"
 mypy = "^1.0.1"
 hypothesis = "^6.68.2"
 pre-commit = "^3.1.1"
+coverage = "^7.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,0 +1,1 @@
+T_BEFORE("updated_at", DATE('2010-02-10'))

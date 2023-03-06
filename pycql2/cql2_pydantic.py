@@ -278,6 +278,8 @@ class IntervalArrayItems(BaseModel):
         # If it is a date, format with built-in isoformat
         if isinstance(self.__root__, date):
             return f"'{self.__root__.isoformat()}'"
+        if self.__root__ == "..":
+            return "'..'"
         # Otherwise use the string representation of the root.
         return str(self.__root__)
 

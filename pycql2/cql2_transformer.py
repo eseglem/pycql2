@@ -198,7 +198,11 @@ class Cql2Transformer(Transformer):
     def temporal_predicate(
         self, temporal_operator: str, *expressions
     ) -> TemporalPredicate:
-        return TemporalPredicate(op=temporal_operator.lower(), args=expressions)
+        op = temporal_operator.lower()
+        # Special case for any operation that ends with `by`
+        if op.endswith("by"):
+            op = op[:-2] + "By"
+        return TemporalPredicate(op=op, args=expressions)
 
     # Array Predicate
 

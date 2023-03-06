@@ -190,6 +190,8 @@ _argument: character_clause
          | SIGNED_NUMBER
          | temporal_literal
          | spatial_literal
+         | arithmetic_expression
+         | boolean_expression
          | property_name
          | function
 

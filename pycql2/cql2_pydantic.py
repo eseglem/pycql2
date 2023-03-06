@@ -5,7 +5,15 @@ from typing import Literal, Sequence, Union
 
 from geojson_pydantic.geometries import Geometry
 from geojson_pydantic.types import BBox
-from pydantic import BaseModel, StrictBool, StrictStr, conlist
+from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt, StrictStr, conlist
+
+# The use of `Strict*` is necessary in a few places because pydantic will convert
+# bools to numbers and vice versa. As well as various types to strings. This should
+# hopefully be fixed in pydantic2.
+
+# Since we are using strict, we need to use a union to allow for ints and floats
+# in places we want to have numbers.
+StrictFloatOrInt = Union[StrictFloat, StrictInt]
 
 
 def make_char_literal(string: str) -> str:
@@ -317,7 +325,9 @@ ComparisonPredicate = Union[
     IsNullPredicate,
 ]
 InstantLiteral = Union[DateLiteral, TimestampLiteral]
-NumericExpression = Union[ArithmeticExpression, float, PropertyRef, FunctionRef]
+NumericExpression = Union[
+    ArithmeticExpression, StrictFloatOrInt, PropertyRef, FunctionRef
+]
 SpatialLiteral = Union[GeometryLiteral, BboxLiteral]
 GeomExpression = Union[SpatialLiteral, PropertyRef, FunctionRef]
 TemporalLiteral = Union[InstantLiteral, IntervalLiteral]
@@ -326,7 +336,9 @@ TemporalInstantExpression = Union[InstantLiteral, PropertyRef, FunctionRef]
 ScalarExpression = Union[
     TemporalInstantExpression, BooleanExpression, CharacterExpression, NumericExpression
 ]
-ArithmeticOperandsItems = Union[ArithmeticExpression, PropertyRef, FunctionRef, float]
+ArithmeticOperandsItems = Union[
+    ArithmeticExpression, PropertyRef, FunctionRef, StrictFloatOrInt
+]
 
 AndOrExpression.update_forward_refs()
 NotExpression.update_forward_refs()

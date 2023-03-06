@@ -8,14 +8,13 @@ When parsing cql2-text to cql2-json.
     - `... NOT BETWEEN ...` becomes `NOT ... BETWEEN ...`
     - `... NOT IN ...` become `NOT ... IN ...`
     - `... IS NOT NULL` becomes `NOT ... IS NULL`
-- Any integers `1` will become floats `1.0`
 - Negative arithmetic operands become a multiply by -1: `{"op": "*", "params": [-1, <arithmetic_operand>]}`
 
 The cql2-text output from the pydantic models is opinionated and explicit. These choices have been made to keep the logic simple while ensuring the correctness of the output.
 - All property names are double quoted `"`.
 - Parenthesis `()` are placed around all comparison and arithmetic operations.
-    - This means that many outputs include a set of parentheses around the whole string. While this is not ideal, it is also not incorrect. Once tests are in place, they can be used to determine if a safe and easy way exists to remove them.
-- Timestamps always contain decimal seconds.
+    - This means that many outputs include a set of parentheses around the whole string. While this is not ideal, it is also not incorrect. When more tests are in place, they can be used to determine if a safe and easy way exists to remove them.
+- Timestamps always contain decimal seconds out to 6 decimal places even when 0: `.000000`. It uses `strftime` with `%f` currently. Logic may be added later to adjust this.
 - Floats ending in `.0` will include the `.0` in the text. Where other libraries such as `shapely` will not include them in WKT.
 
 ---

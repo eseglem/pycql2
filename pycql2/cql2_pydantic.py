@@ -142,6 +142,13 @@ class ArrayLiteral(BaseModel):
         return f"({join_list(self.__root__, ', ')})"
 
 
+class ArrayExpression(BaseModel):
+    __root__: tuple[ArrayExpressionItems, ArrayExpressionItems]
+
+    def __str__(self) -> str:
+        return f"({self.__root__[0]}, {self.__root__[1]})"
+
+
 class ArrayPredicate(BaseModel):
     op: Literal["a_containedBy", "a_contains", "a_equals", "a_overlaps"]
     args: ArrayExpression
@@ -223,19 +230,6 @@ class PropertyRef(BaseModel):
     def __str__(self) -> str:
         # May not need to be quoted, but it can be, so its safer and easier
         return f'"{self.property}"'
-
-
-ArrayExpressionItems = Union[ArrayLiteral, PropertyRef, FunctionRef]
-
-
-class ArrayExpression(BaseModel):
-    __root__ = tuple[ArrayExpressionItems, ArrayExpressionItems]
-
-    def __str__(self) -> str:
-        return f"({self.__root__[0]}, {self.__root__[1]})"
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class DateLiteral(BaseModel):
@@ -339,28 +333,30 @@ ScalarExpression = Union[
 ArithmeticOperandsItems = Union[
     ArithmeticExpression, PropertyRef, FunctionRef, StrictFloatOrInt
 ]
+ArrayExpressionItems = Union[ArrayLiteral, PropertyRef, FunctionRef]
 
+
+Accenti.update_forward_refs()
 AndOrExpression.update_forward_refs()
-NotExpression.update_forward_refs()
-BinaryComparisonPredicate.update_forward_refs()
-IsLikePredicate.update_forward_refs()
-IsBetweenPredicate.update_forward_refs()
-IsInListPredicate.update_forward_refs()
-IsNullPredicate.update_forward_refs()
-SpatialPredicate.update_forward_refs()
-TemporalPredicate.update_forward_refs()
-ArrayPredicate.update_forward_refs()
-BooleanExpression.update_forward_refs()
 ArithmeticExpression.update_forward_refs()
+ArrayExpression.update_forward_refs()
+ArrayLiteral.update_forward_refs()
+ArrayPredicate.update_forward_refs()
+BboxLiteral.update_forward_refs()
+BinaryComparisonPredicate.update_forward_refs()
+BooleanExpression.update_forward_refs()
+Casei.update_forward_refs()
+CharacterExpression.update_forward_refs()
+DateLiteral.update_forward_refs()
 Function.update_forward_refs()
 FunctionRef.update_forward_refs()
-PropertyRef.update_forward_refs()
-DateLiteral.update_forward_refs()
-TimestampLiteral.update_forward_refs()
-Casei.update_forward_refs()
-Accenti.update_forward_refs()
-BboxLiteral.update_forward_refs()
 IntervalLiteral.update_forward_refs()
-CharacterExpression.update_forward_refs()
-ArrayLiteral.update_forward_refs()
-ArrayExpression.update_forward_refs()
+IsBetweenPredicate.update_forward_refs()
+IsInListPredicate.update_forward_refs()
+IsLikePredicate.update_forward_refs()
+IsNullPredicate.update_forward_refs()
+NotExpression.update_forward_refs()
+PropertyRef.update_forward_refs()
+SpatialPredicate.update_forward_refs()
+TemporalPredicate.update_forward_refs()
+TimestampLiteral.update_forward_refs()

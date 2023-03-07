@@ -212,7 +212,11 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def array_predicate(self, array_operator: str, *expressions) -> ArrayPredicate:
-        return ArrayPredicate(op=array_operator.lower(), args=expressions)
+        op = array_operator.lower()
+        # Special case for any operation that ends with `by`
+        if op.endswith("by"):
+            op = op[:-2] + "By"
+        return ArrayPredicate(op=op, args=expressions)
 
     # Arithmetic
 

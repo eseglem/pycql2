@@ -1,0 +1,13 @@
+{
+  "op": "a_equals",
+  "args": [
+    {
+      "property": "values"
+    },
+    [
+      "a",
+      "b",
+      "c"
+    ]
+  ]
+}

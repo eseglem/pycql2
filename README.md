@@ -23,12 +23,8 @@ The tests have been created to exercise various parts of the parsers, and are no
 
 Each file in `tests/data/json/` is a standalone `cql2-json` example. There will be at least one corresponding file in `tests/data/text` which is a `cql2-text` equivalent. These corresponding examples should always convert back and forth identically. Since there are multiple ways to write the same thing in `cql2-text` there may be additional numbered alternative examples like `-alt01`. These will all parse to the same json, which in turn will output the main text example.
 
-Coverage: 100% on the pydantic models, 97% on the lark transformer.
+Coverage: 100% on the pydantic models, 99% on the lark transformer.
 
-Need additional tests to cover:
-MultiPoint
-GeometryCollection
-Complex Arithmetic
-Negative
+Boolean Expression and Boolean Term functions need investigation. One line isn't covered in both of them. I believe the way the grammar is set up things are being passed through and skipping the lines passing through. Otherwise nothing would be working.
 
-Parts of Boolean Expression and Boolean Term - Needs investigation, I think the way the grammar is set up things are being passed through and skipping the lines passing through. Otherwise nothing would be working.
+Would like to add some more complex examples with more nested logic. As well as more variety to various inputs, the current examples are mostly PropertyRef and numbers.

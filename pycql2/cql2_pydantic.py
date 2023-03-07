@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal, Sequence, Union
 
-from geojson_pydantic.geometries import Geometry
+from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
 from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt, StrictStr, conlist
 
@@ -305,7 +305,7 @@ class CharacterExpression(BaseModel):
 
 
 class GeometryLiteral(BaseModel):
-    __root__: Geometry
+    __root__: Geometry | GeometryCollection
 
     def __str__(self) -> str:
         return self.__root__.wkt

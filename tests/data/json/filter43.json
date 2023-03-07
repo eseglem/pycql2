@@ -1,0 +1,13 @@
+{
+  "op": "=",
+  "args": [
+    {
+      "casei": {
+        "property": "owner"
+      }
+    },
+    {
+      "casei": "somebody else"
+    }
+  ]
+}

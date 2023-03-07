@@ -1,0 +1,13 @@
+{
+  "op": "=",
+  "args": [
+    {
+      "accenti": {
+        "property": "owner"
+      }
+    },
+    {
+      "accenti": "Beyoncé"
+    }
+  ]
+}

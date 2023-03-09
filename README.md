@@ -17,6 +17,15 @@ The cql2-text output from the pydantic models is opinionated and explicit. These
 - Timestamps always contain decimal seconds out to 6 decimal places even when 0: `.000000`. It uses `strftime` with `%f` currently. Logic may be added later to adjust this.
 - Floats ending in `.0` will include the `.0` in the text. Where other libraries such as `shapely` will not include them in WKT.
 
+The `cql2-text` spec was not strictly followed for WKT. Some tweaks were made to increase it is compatible with `geojson-pydantic`, as well as accept the WKT output.
+- Added optional `Z` to each geometry. It doesn't enforce 2d / 3d, just allows the character to be there.
+- LineString coordinates require a minimum of 2 coordinates.
+- Added 'Linear Ring' for use in Polygons with a minimum of 4 coordinates. It doesn't enforce the ring being closed, just that it has enough coordinates to be one.
+
+There are a few other things which **may** be issues with the spec but haven't been addressed yet.
+- `spatial_literal` includes `geometry_collection` and `bbox`, and `geometry_collection` allows for all `spatial_literal` within it. But `bbox` does not seem to be a part of WKT. And at least within GeoJSON, nested `GeometryCollection` "SHOULD be avoided". This would mean the `cql2-text -> cql2-json` conversion would break where `geojson-pydantic` doesn't accept these cases.
+- Does not allow for `EMPTY` geometries.
+
 ---
 
 The tests have been created to exercise various parts of the parsers, and are not meant to serve as realistic examples. Parts like geometries may not make sense but are valid per the specs.
@@ -27,4 +36,16 @@ Coverage: 100% on the pydantic models, 99% on the lark transformer.
 
 Boolean Expression and Boolean Term functions need investigation. One line isn't covered in both of them. I believe the way the grammar is set up things are being passed through and skipping the lines passing through. Otherwise nothing would be working.
 
-Would like to add some more complex examples with more nested logic. As well as more variety to various inputs, the current examples are mostly PropertyRef and numbers.
+Would like to add some more complex examples with more nested logic. As well as more variety to various inputs, the current examples are mostly PropertyRef and numbers. Including:
+- More complex identifiers with `_`, `.`, `:`, and non ascii letters.
+- Character literals with escaped quote.
+- Deeply nested logic.
+- Each type of `scalar_expression` on each side of a `binary_comparison_predicate`, etc.
+
+---
+
+Writing this parser has resulted in feedback and contributions to the [ogcapi-features](https://github.com/opengeospatial/ogcapi-features) CQL2 spec:
+- Reported issue with Alpha and Symbols (fixed): https://github.com/opengeospatial/ogcapi-features/issues/787
+- Submit PR for minor inconsistencies between schema formats (pending): https://github.com/opengeospatial/ogcapi-features/pull/794
+- Added notes to Updating examples ticket and offered these tests back: https://github.com/opengeospatial/ogcapi-features/issues/783
+- Reported observations about WKT grammar (pending): https://github.com/opengeospatial/ogcapi-features/issues/800

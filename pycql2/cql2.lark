@@ -204,9 +204,13 @@ _argument: character_clause
 
 // WKT Definitions
 
-// Note: This does not parse `EMPTY` WKT but it is not included in CQL2 spec.
-// Note: The BNF does not handle `Z` in the WKT despite allowing 3D coordinates.
-// Note: The BNF allows for bbox inside GeometryCollection but it is not allowed in WKT.
+// Notes:
+// - Added support for `Z` in WKT which is not included in CQL2 spec.
+// - Added minimum of 2 points for LineString.
+// - Added linear ring with 4 points minimum for Polygons.
+// - The spec does not support `EMPTY` WKT.
+// - The spec allows for BBOX inside GeometryCollection which does not seem to be valid WKT.
+// - The spec allows for GeometryCollection within GeometryCollection but GeoJSON discourages it.
 ?spatial_literal: point
                 | linestring
                 | polygon
@@ -222,7 +226,7 @@ polygon: "POLYGON"i "Z"i? polygon_coordinates
 multi_point: "MULTIPOINT"i "Z"i? multi_point_coordinates
 multi_linestring: "MULTILINESTRING"i "Z"i? multi_linestring_coordinates
 multi_polygon: "MULTIPOLYGON"i "Z"i? multi_polygon_coordinates
-geometry_collection: "GEOMETRYCOLLECTION"i "(" spatial_literal ("," spatial_literal)* ")"
+geometry_collection: "GEOMETRYCOLLECTION"i "Z"i? "(" spatial_literal ("," spatial_literal)* ")"
 bbox: "BBOX"i "(" SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER ["," SIGNED_NUMBER "," SIGNED_NUMBER] ")"
 // WKT Coordinates
 coordinate: SIGNED_NUMBER SIGNED_NUMBER [SIGNED_NUMBER]
@@ -232,7 +236,7 @@ linestring_coordinates: "(" coordinate ("," coordinate)+ ")"
 // BNF does not include linear ring, but you cannot have a polygon without 4 points.
 linear_ring_coordinates: "(" coordinate "," coordinate "," coordinate ("," coordinate)+ ")"
 polygon_coordinates:  "(" linear_ring_coordinates ("," linear_ring_coordinates)* ")"
-multi_point_coordinates: "(" coordinate ("," coordinate)+ ")"
+multi_point_coordinates: "(" coordinate ("," coordinate)* ")"
 multi_linestring_coordinates: "(" linestring_coordinates ("," linestring_coordinates)* ")"
 multi_polygon_coordinates: "(" polygon_coordinates ("," polygon_coordinates)* ")"
 

@@ -5,8 +5,7 @@ repos:
   - id: check-added-large-files
   - id: check-toml
   - id: check-yaml
-    args:
-    - --unsafe
+    args: ["--unsafe"]
   - id: debug-statements
   - id: end-of-file-fixer
   - id: trailing-whitespace
@@ -14,13 +13,12 @@ repos:
   rev: v3.3.1
   hooks:
   - id: pyupgrade
-    args: [--py38-plus]
+    args: ["--py38-plus", "--keep-runtime-typing"]
 - repo: https://github.com/charliermarsh/ruff-pre-commit
   rev: v0.0.254
   hooks:
   - id: ruff
-    args:
-    - --fix
+    args: ["--fix"]
 - repo: https://github.com/psf/black
   rev: 23.1.0
   hooks:

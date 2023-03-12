@@ -61,25 +61,19 @@ class Cql2Transformer(Transformer):
         # Strip the `'` which aren't used in the json representation
         return dotdot.strip("'")
 
-    # Splitting these apart within the grammar resulted in errors, so we need to
-    # introspect on the number of items to determine the function. All continuos
+    # Splitting these apart within the grammar resulted in errors. All continuos
     # blocks of `or` / `and` are grouped together into single json operation.
+
+    # Since we are using `?` in the grammar it will pass through single items.
+    # We only need to handle the case where there are multiple items.
 
     @v_args(inline=True)
     def boolean_expression(self, *boolean_terms) -> AndOrExpression:
-        # Multiple terms means they are all `or`ed together
-        if len(boolean_terms) > 1:
-            return AndOrExpression(op="or", args=boolean_terms)
-        # Just pass a single term through, nothing to `or`
-        return boolean_terms[0]
+        return AndOrExpression(op="or", args=boolean_terms)
 
     @v_args(inline=True)
     def boolean_term(self, *boolean_factors) -> AndOrExpression:
-        # Multiple terms means the are all `and`ed together
-        if len(boolean_factors) > 1:
-            return AndOrExpression(op="and", args=boolean_factors)
-        # Just pass a single term through, nothing to `and`
-        return boolean_factors[0]
+        return AndOrExpression(op="and", args=boolean_factors)
 
     # Splitting boolean_factor from `not` did not introduce issues, so we do it this
     # way to keep things cleaner.

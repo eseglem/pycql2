@@ -4,21 +4,42 @@ version = "0.1.0"
 description = "Pydantic models for OGC cql2-json and parser for cql2-text."
 authors = ["Erik Seglem <erik.seglem@gmail.com>"]
 include = ["pycql2/cql2.lark"]
+repository = "https://github.com/eseglem/pycql2"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Framework :: Pydantic",
+    "Framework :: Lark",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: GIS",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pydantic = "^1.10.5"
+pydantic = "^1.9.0"
 geojson-pydantic = "^0.5.0"
-lark = "^1.1.5"
+lark = "^1.0.0"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^6.2.5"
-black = "^23.1.0"
-ruff = "^0.0.253"
-mypy = "^1.0.1"
-hypothesis = "^6.68.2"
-pre-commit = "^3.1.1"
-coverage = "^7.2.1"
+pytest = {version = "^6.2.5", optional = true}
+coverage = {version = "^7.2.1", optional = true, extras = ["toml"]}
+pytest-cov = {version = "^3.0.0", optional = true}
+hypothesis = {version = "^6.68.2", optional = true}
+black = {version = "^23.1.0", optional = true}
+ruff = {version = "^0.0.254", optional = true}
+mypy = {version = "^1.0.1", optional = true}
+isort = {version = "^5.12.0", optional = true}
+pre-commit = {version = "^3.1.1", optional = true}
+
+[tool.poetry.extras]
+dev = ["black", "ruff", "mypy", "pre-commit", "isort"]
+test = ["pytest", "coverage", "pytest-cov", "hypothesis"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -26,3 +47,12 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
+
+[tool.ruff]
+ignore = [
+    "E501", # Black handles line length
+]
+
+[tool.coverage.run]
+source = ["pycql2"]
+branch = true

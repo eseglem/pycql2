@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Generic, Literal, Sequence, TypeVar, Union
+from typing import Generic, List, Literal, Sequence, Tuple, TypeVar, Union
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
@@ -29,7 +29,7 @@ def join_list(items: Sequence, sep: str) -> str:
 
 class NotExpression(BaseModel):
     op: Literal["not"]
-    args: tuple[BooleanExpression]
+    args: Tuple[BooleanExpression]
 
     def __str__(self) -> str:
         return f"NOT {self.args[0]}"
@@ -37,7 +37,7 @@ class NotExpression(BaseModel):
 
 class BinaryComparisonPredicate(BaseModel):
     op: Literal["=", "<>", "<", "<=", ">", ">="]
-    args: tuple[ScalarExpression, ScalarExpression]
+    args: Tuple[ScalarExpression, ScalarExpression]
 
     def __str__(self) -> str:
         return f"{self.args[0]} {self.op} {self.args[1]}"
@@ -45,7 +45,7 @@ class BinaryComparisonPredicate(BaseModel):
 
 class IsLikePredicate(BaseModel):
     op: Literal["like"]
-    args: tuple[CharacterExpression, PatternExpression]
+    args: Tuple[CharacterExpression, PatternExpression]
 
     def __str__(self) -> str:
         return f"{self.args[0]} LIKE {self.args[1]}"
@@ -53,7 +53,7 @@ class IsLikePredicate(BaseModel):
 
 class IsBetweenPredicate(BaseModel):
     op: Literal["between"]
-    args: tuple[NumericExpression, NumericExpression, NumericExpression]
+    args: Tuple[NumericExpression, NumericExpression, NumericExpression]
 
     def __str__(self) -> str:
         return f"{self.args[0]} BETWEEN {self.args[1]} AND {self.args[2]}"
@@ -61,7 +61,7 @@ class IsBetweenPredicate(BaseModel):
 
 class IsInListPredicate(BaseModel):
     op: Literal["in"]
-    args: tuple[ScalarExpression, list[ScalarExpression]]
+    args: Tuple[ScalarExpression, List[ScalarExpression]]
 
     def __str__(self) -> str:
         return f"{self.args[0]} IN ({join_list(self.args[1], ', ')})"
@@ -69,13 +69,13 @@ class IsInListPredicate(BaseModel):
 
 class IsNullPredicate(BaseModel):
     op: Literal["isNull"]
-    args: (
-        CharacterExpression
-        | NumericExpression
-        | TemporalExpression
-        | BooleanExpression
-        | GeomExpression
-    )
+    args: Union[
+        CharacterExpression,
+        NumericExpression,
+        TemporalExpression,
+        BooleanExpression,
+        GeomExpression,
+    ]
 
     def __str__(self) -> str:
         return f"{self.args} IS NULL"
@@ -92,7 +92,7 @@ class SpatialPredicate(BaseModel):
         "s_touches",
         "s_within",
     ]
-    args: tuple[GeomExpression, GeomExpression]
+    args: Tuple[GeomExpression, GeomExpression]
 
     def __str__(self) -> str:
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
@@ -116,22 +116,22 @@ class TemporalPredicate(BaseModel):
         "t_startedBy",
         "t_starts",
     ]
-    args: tuple[TemporalExpression, TemporalExpression]
+    args: Tuple[TemporalExpression, TemporalExpression]
 
     def __str__(self) -> str:
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
 
 
 class ArrayLiteral(BaseModel):
-    __root__: list[
-        (
-            NumericExpression
-            | BooleanExpression
-            | GeomExpression
-            | TemporalExpression
-            | list[ArrayLiteral]
-            | CharacterExpression
-        )
+    __root__: List[
+        Union[
+            NumericExpression,
+            BooleanExpression,
+            GeomExpression,
+            TemporalExpression,
+            List[ArrayLiteral],
+            CharacterExpression,
+        ]
     ]
 
     def __str__(self) -> str:
@@ -139,7 +139,7 @@ class ArrayLiteral(BaseModel):
 
 
 class ArrayExpression(BaseModel):
-    __root__: tuple[ArrayExpressionItems, ArrayExpressionItems]
+    __root__: Tuple[ArrayExpressionItems, ArrayExpressionItems]
 
     def __str__(self) -> str:
         return f"({self.__root__[0]}, {self.__root__[1]})"
@@ -154,15 +154,15 @@ class ArrayPredicate(BaseModel):
 
 
 class BooleanExpression(BaseModel):
-    __root__: (
-        AndOrExpression
-        | NotExpression
-        | ComparisonPredicate
-        | SpatialPredicate
-        | TemporalPredicate
-        | ArrayPredicate
-        | StrictBool
-    )
+    __root__: Union[
+        AndOrExpression,
+        NotExpression,
+        ComparisonPredicate,
+        SpatialPredicate,
+        TemporalPredicate,
+        ArrayPredicate,
+        StrictBool,
+    ]
 
     def __str__(self) -> str:
         # If it's a bool, we uppercase it.
@@ -186,7 +186,7 @@ class AndOrExpression(BaseModel):
 class ArithmeticExpression(BaseModel):
     # cql2-text defines two operators cql2-json does not.
     op: Literal["+", "-", "*", "/", "^", "%", "div"]
-    args: tuple[ArithmeticOperandsItems, ArithmeticOperandsItems]
+    args: Tuple[ArithmeticOperandsItems, ArithmeticOperandsItems]
 
     def __str__(self) -> str:
         # May result in excessive parens, but guarantees correctness
@@ -195,18 +195,19 @@ class ArithmeticExpression(BaseModel):
 
 class Function(BaseModel):
     name: StrictStr
-    args: None | (
-        list[
-            (
-                CharacterExpression
-                | NumericExpression
-                | BooleanExpression
-                | GeomExpression
-                | TemporalExpression
-                | ArrayExpression
-            )
-        ]
-    ) = None
+    args: Union[
+        None,
+        List[
+            Union[
+                CharacterExpression,
+                NumericExpression,
+                BooleanExpression,
+                GeomExpression,
+                TemporalExpression,
+                ArrayExpression,
+            ]
+        ],
+    ] = None
 
     def __str__(self) -> str:
         # If self.args, comma join them. Otherwise, empty string. Inside parens.
@@ -252,7 +253,7 @@ class BboxLiteral(BaseModel):
 
 
 class IntervalArrayItems(BaseModel):
-    __root__: datetime | date | Literal[".."] | PropertyRef | FunctionRef
+    __root__: Union[datetime, date, Literal[".."], PropertyRef, FunctionRef]
 
     def __str__(self) -> str:
         # If it is a datetime, format it as iso with `Z` at the end. Note this will
@@ -269,20 +270,20 @@ class IntervalArrayItems(BaseModel):
 
 
 class IntervalLiteral(BaseModel):
-    interval: tuple[IntervalArrayItems, IntervalArrayItems]
+    interval: Tuple[IntervalArrayItems, IntervalArrayItems]
 
     def __str__(self) -> str:
         return f"INTERVAL({self.interval[0]}, {self.interval[1]})"
 
 
 class CharacterExpression(BaseModel):
-    __root__: (
-        Casei[CharacterExpression]
-        | Accenti[CharacterExpression]
-        | StrictStr
-        | PropertyRef
-        | FunctionRef
-    )
+    __root__: Union[
+        Casei[CharacterExpression],
+        Accenti[CharacterExpression],
+        StrictStr,
+        PropertyRef,
+        FunctionRef,
+    ]
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
@@ -293,7 +294,7 @@ class CharacterExpression(BaseModel):
 
 
 class PatternExpression(BaseModel):
-    __root__: Casei[PatternExpression] | Accenti[PatternExpression] | StrictStr
+    __root__: Union[Casei[PatternExpression], Accenti[PatternExpression], StrictStr]
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
@@ -303,7 +304,7 @@ class PatternExpression(BaseModel):
         return str(self.__root__)
 
 
-E = TypeVar("E", bound=CharacterExpression | PatternExpression)
+E = TypeVar("E", bound=Union[CharacterExpression, PatternExpression])
 
 
 class Casei(GenericModel, Generic[E]):
@@ -321,7 +322,7 @@ class Accenti(GenericModel, Generic[E]):
 
 
 class GeometryLiteral(BaseModel):
-    __root__: Geometry | GeometryCollection
+    __root__: Union[Geometry, GeometryCollection]
 
     def __str__(self) -> str:
         return self.__root__.wkt

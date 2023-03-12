@@ -1,0 +1,13 @@
+{
+  "op": "like",
+  "args": [
+    {
+      "accenti": "Beyoncé%"
+    },
+    {
+      "casei": {
+        "property": "name"
+      }
+    }
+  ]
+}

@@ -154,7 +154,7 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def in_list(self, scalar_expression, *list_values) -> IsInListPredicate:
-        return IsInListPredicate(op="in", args=[scalar_expression, list_values[0]])
+        return IsInListPredicate(op="in", args=(scalar_expression, list_values[0]))
 
     @v_args(inline=True)
     def not_in_list(self, scalar_expression, *list_values) -> NotExpression:

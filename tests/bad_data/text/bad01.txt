@@ -1,0 +1,1 @@
+ACCENTI('Beyoncé%') LIKE CASEI("name")

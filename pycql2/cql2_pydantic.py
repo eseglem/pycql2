@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Literal, Sequence, Union
+from typing import Generic, Literal, Sequence, TypeVar, Union
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
 from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt, StrictStr, conlist
+from pydantic.generics import GenericModel
 
 # The use of `Strict*` is necessary in a few places because pydantic will convert
 # bools to numbers and vice versa. As well as various types to strings. This should
@@ -44,15 +45,10 @@ class BinaryComparisonPredicate(BaseModel):
 
 class IsLikePredicate(BaseModel):
     op: Literal["like"]
-    args: tuple[CharacterExpression, StrictStr | Casei | Accenti]
+    args: tuple[CharacterExpression, PatternExpression]
 
     def __str__(self) -> str:
-        # If the second argument is a string, we need to make it a char literal.
-        args1 = self.args[1]
-        if isinstance(args1, str):
-            args1 = make_char_literal(args1)
-        # Then we return the string representation no matter what.
-        return f"{self.args[0]} LIKE {args1}"
+        return f"{self.args[0]} LIKE {self.args[1]}"
 
 
 class IsBetweenPredicate(BaseModel):
@@ -248,20 +244,6 @@ class TimestampLiteral(BaseModel):
         return f"TIMESTAMP('{self.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')}')"
 
 
-class Casei(BaseModel):
-    casei: CharacterExpression
-
-    def __str__(self) -> str:
-        return f"CASEI({self.casei})"
-
-
-class Accenti(BaseModel):
-    accenti: CharacterExpression
-
-    def __str__(self) -> str:
-        return f"ACCENTI({self.accenti})"
-
-
 class BboxLiteral(BaseModel):
     bbox: BBox
 
@@ -294,7 +276,13 @@ class IntervalLiteral(BaseModel):
 
 
 class CharacterExpression(BaseModel):
-    __root__: Casei | Accenti | StrictStr | PropertyRef | FunctionRef
+    __root__: (
+        Casei[CharacterExpression]
+        | Accenti[CharacterExpression]
+        | StrictStr
+        | PropertyRef
+        | FunctionRef
+    )
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
@@ -302,6 +290,34 @@ class CharacterExpression(BaseModel):
             return make_char_literal(self.__root__)
         # Otherwise, return the string representation of the root
         return str(self.__root__)
+
+
+class PatternExpression(BaseModel):
+    __root__: Casei[PatternExpression] | Accenti[PatternExpression] | StrictStr
+
+    def __str__(self) -> str:
+        # If it is already a string, make it a char literal
+        if isinstance(self.__root__, str):
+            return make_char_literal(self.__root__)
+        # Otherwise, return the string representation of the root
+        return str(self.__root__)
+
+
+E = TypeVar("E", bound=CharacterExpression | PatternExpression)
+
+
+class Casei(GenericModel, Generic[E]):
+    casei: E
+
+    def __str__(self) -> str:
+        return f"CASEI({self.casei})"
+
+
+class Accenti(GenericModel, Generic[E]):
+    accenti: E
+
+    def __str__(self) -> str:
+        return f"ACCENTI({self.accenti})"
 
 
 class GeometryLiteral(BaseModel):
@@ -335,7 +351,7 @@ ArithmeticOperandsItems = Union[
 ]
 ArrayExpressionItems = Union[ArrayLiteral, PropertyRef, FunctionRef]
 
-
+# Update all the forward references
 Accenti.update_forward_refs()
 AndOrExpression.update_forward_refs()
 ArithmeticExpression.update_forward_refs()
@@ -356,6 +372,7 @@ IsInListPredicate.update_forward_refs()
 IsLikePredicate.update_forward_refs()
 IsNullPredicate.update_forward_refs()
 NotExpression.update_forward_refs()
+PatternExpression.update_forward_refs()
 PropertyRef.update_forward_refs()
 SpatialPredicate.update_forward_refs()
 TemporalPredicate.update_forward_refs()

@@ -2,15 +2,21 @@ import json
 import os
 
 import pytest
+from lark import UnexpectedCharacters
+from pydantic import ValidationError
 
 from pycql2.cql2_pydantic import BooleanExpression
 from pycql2.cql2_transformer import parser, transformer
 
 JSON_DIR = "tests/data/json"
 TEXT_DIR = "tests/data/text"
-
 json_files = os.listdir(JSON_DIR)
 text_files = os.listdir(TEXT_DIR)
+
+BAD_JSON_DIR = "tests/bad_data/json"
+BAD_TEXT_DIR = "tests/bad_data/text"
+bad_json_files = os.listdir(BAD_JSON_DIR)
+bad_text_files = os.listdir(BAD_TEXT_DIR)
 
 
 @pytest.mark.parametrize("json_file", json_files)
@@ -27,6 +33,24 @@ def test_parse_text(text_file: str) -> None:
     with open(os.path.join(TEXT_DIR, text_file)) as inf:
         text_data = inf.read()
     _ = parser.parse(text_data)
+
+
+@pytest.mark.parametrize("json_file", bad_json_files)
+def test_parse_bad_json(json_file: str) -> None:
+    # Simply test that the pydantic model can parse the json
+    with open(os.path.join(BAD_JSON_DIR, json_file)) as inf:
+        json_data = json.load(inf)
+    with pytest.raises(ValidationError):
+        _ = BooleanExpression.parse_obj(json_data)
+
+
+@pytest.mark.parametrize("text_file", bad_text_files)
+def test_parse_bad_text(text_file: str) -> None:
+    # Simply test that the parser can parse the text
+    with open(os.path.join(BAD_TEXT_DIR, text_file)) as inf:
+        text_data = inf.read()
+    with pytest.raises(UnexpectedCharacters):
+        _ = parser.parse(text_data)
 
 
 @pytest.mark.parametrize("json_file", json_files)

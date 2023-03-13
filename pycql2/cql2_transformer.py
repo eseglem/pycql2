@@ -252,7 +252,7 @@ class Cql2Transformer(Transformer):
     def negative(self, arithmetic_operand) -> ArithmeticExpression:
         # There is not a specific json representation of `negative`, so this seems
         # like the simplest way to represent the same thing.
-        return ArithmeticExpression(op="*", args=[-1, arithmetic_operand])
+        return ArithmeticExpression(op="*", args=(-1, arithmetic_operand))
 
     # Character Literal, Function, and Property
 
@@ -264,7 +264,7 @@ class Cql2Transformer(Transformer):
     argument_list = passthrough
 
     @v_args(inline=True)
-    def function(self, identifier: str, argument_list) -> FunctionRef:
+    def function(self, identifier: str, argument_list=[]) -> FunctionRef:
         return FunctionRef(function=Function(name=identifier, args=argument_list))
 
     @v_args(inline=True)

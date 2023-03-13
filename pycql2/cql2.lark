@@ -184,7 +184,7 @@ property_name: IDENTIFIER
              | "\"" IDENTIFIER "\""
 
 // Function
-function: IDENTIFIER "(" argument_list* ")"
+function: IDENTIFIER "(" argument_list? ")"
 argument_list: _argument ("," _argument)*
 _argument: character_clause
          | SIGNED_NUMBER

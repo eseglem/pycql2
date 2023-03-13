@@ -125,12 +125,12 @@ class TemporalPredicate(BaseModel):
 class ArrayLiteral(BaseModel):
     __root__: List[
         Union[
+            CharacterExpression,
             NumericExpression,
             BooleanExpression,
             GeomExpression,
             TemporalExpression,
-            List[ArrayLiteral],
-            CharacterExpression,
+            ArrayLiteral,
         ]
     ]
 

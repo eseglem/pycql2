@@ -122,7 +122,7 @@ class TemporalPredicate(BaseModel):
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
 
 
-class ArrayLiteral(BaseModel):
+class Array(BaseModel):
     __root__: List[
         Union[
             CharacterExpression,
@@ -130,7 +130,7 @@ class ArrayLiteral(BaseModel):
             BooleanExpression,
             GeomExpression,
             TemporalExpression,
-            ArrayLiteral,
+            Array,
         ]
     ]
 
@@ -204,7 +204,7 @@ class Function(BaseModel):
                 BooleanExpression,
                 GeomExpression,
                 TemporalExpression,
-                ArrayExpression,
+                Array,
             ]
         ],
     ] = None
@@ -229,14 +229,14 @@ class PropertyRef(BaseModel):
         return f'"{self.property}"'
 
 
-class DateLiteral(BaseModel):
+class DateInstant(BaseModel):
     date: date
 
     def __str__(self) -> str:
         return f"DATE('{self.date.isoformat()}')"
 
 
-class TimestampLiteral(BaseModel):
+class TimestampInstant(BaseModel):
     timestamp: datetime
 
     def __str__(self) -> str:
@@ -269,7 +269,7 @@ class IntervalArrayItems(BaseModel):
         return str(self.__root__)
 
 
-class IntervalLiteral(BaseModel):
+class IntervalInstance(BaseModel):
     interval: Tuple[IntervalArrayItems, IntervalArrayItems]
 
     def __str__(self) -> str:
@@ -335,39 +335,39 @@ ComparisonPredicate = Union[
     IsInListPredicate,
     IsNullPredicate,
 ]
-InstantLiteral = Union[DateLiteral, TimestampLiteral]
+InstantInstance = Union[DateInstant, TimestampInstant]
 NumericExpression = Union[
     ArithmeticExpression, StrictFloatOrInt, PropertyRef, FunctionRef
 ]
-SpatialLiteral = Union[GeometryLiteral, BboxLiteral]
-GeomExpression = Union[SpatialLiteral, PropertyRef, FunctionRef]
-TemporalLiteral = Union[InstantLiteral, IntervalLiteral]
-TemporalExpression = Union[TemporalLiteral, PropertyRef, FunctionRef]
-TemporalInstantExpression = Union[InstantLiteral, PropertyRef, FunctionRef]
+SpatialInstance = Union[GeometryLiteral, BboxLiteral]
+GeomExpression = Union[SpatialInstance, PropertyRef, FunctionRef]
+TemporalInstance = Union[InstantInstance, IntervalInstance]
+TemporalExpression = Union[TemporalInstance, PropertyRef, FunctionRef]
+TemporalInstantExpression = Union[InstantInstance, PropertyRef, FunctionRef]
 ScalarExpression = Union[
     TemporalInstantExpression, BooleanExpression, CharacterExpression, NumericExpression
 ]
 ArithmeticOperandsItems = Union[
     ArithmeticExpression, PropertyRef, FunctionRef, StrictFloatOrInt
 ]
-ArrayExpressionItems = Union[ArrayLiteral, PropertyRef, FunctionRef]
+ArrayExpressionItems = Union[Array, PropertyRef, FunctionRef]
 
 # Update all the forward references
 Accenti.update_forward_refs()
 AndOrExpression.update_forward_refs()
 ArithmeticExpression.update_forward_refs()
 ArrayExpression.update_forward_refs()
-ArrayLiteral.update_forward_refs()
+Array.update_forward_refs()
 ArrayPredicate.update_forward_refs()
 BboxLiteral.update_forward_refs()
 BinaryComparisonPredicate.update_forward_refs()
 BooleanExpression.update_forward_refs()
 Casei.update_forward_refs()
 CharacterExpression.update_forward_refs()
-DateLiteral.update_forward_refs()
+DateInstant.update_forward_refs()
 Function.update_forward_refs()
 FunctionRef.update_forward_refs()
-IntervalLiteral.update_forward_refs()
+IntervalInstance.update_forward_refs()
 IsBetweenPredicate.update_forward_refs()
 IsInListPredicate.update_forward_refs()
 IsLikePredicate.update_forward_refs()
@@ -377,4 +377,4 @@ PatternExpression.update_forward_refs()
 PropertyRef.update_forward_refs()
 SpatialPredicate.update_forward_refs()
 TemporalPredicate.update_forward_refs()
-TimestampLiteral.update_forward_refs()
+TimestampInstant.update_forward_refs()

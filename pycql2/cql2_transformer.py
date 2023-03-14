@@ -20,10 +20,10 @@ from pycql2.cql2_pydantic import (
     BboxLiteral,
     BinaryComparisonPredicate,
     Casei,
-    DateLiteral,
+    DateInstant,
     Function,
     FunctionRef,
-    IntervalLiteral,
+    IntervalInstance,
     IsBetweenPredicate,
     IsInListPredicate,
     IsLikePredicate,
@@ -32,7 +32,7 @@ from pycql2.cql2_pydantic import (
     PropertyRef,
     SpatialPredicate,
     TemporalPredicate,
-    TimestampLiteral,
+    TimestampInstant,
 )
 
 
@@ -209,7 +209,7 @@ class Cql2Transformer(Transformer):
 
     array_expression = passthrough
     array_element = passthrough
-    array_literal = passthrough
+    array = passthrough
 
     @v_args(inline=True)
     def array_predicate(self, array_operator: str, *expressions) -> ArrayPredicate:
@@ -357,16 +357,16 @@ class Cql2Transformer(Transformer):
         )
 
     @v_args(inline=True)
-    def date_instant(self, date_: date) -> DateLiteral:
-        return DateLiteral(date=date_)
+    def date_instant(self, date_: date) -> DateInstant:
+        return DateInstant(date=date_)
 
     @v_args(inline=True)
-    def timestamp_instant(self, timestamp: datetime) -> TimestampLiteral:
-        return TimestampLiteral(timestamp=timestamp)
+    def timestamp_instant(self, timestamp: datetime) -> TimestampInstant:
+        return TimestampInstant(timestamp=timestamp)
 
     @v_args(inline=True)
-    def interval_literal(self, *interval) -> IntervalLiteral:
-        return IntervalLiteral(interval=interval)
+    def interval_instance(self, *interval) -> IntervalInstance:
+        return IntervalInstance(interval=interval)
 
 
 parser = Lark.open(

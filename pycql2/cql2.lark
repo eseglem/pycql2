@@ -31,7 +31,7 @@ start: boolean_expression
 
 ?scalar_expression: character_clause
                   | SIGNED_NUMBER
-                  | instant_literal
+                  | instant_instance
                   | arithmetic_expression
                   | boolean_expression
                   | property_name
@@ -66,8 +66,8 @@ is_null_predicate: is_null_operand _IS _NULL        -> is_null
                  | is_null_operand _IS _NOT _NULL   -> is_not_null
 ?is_null_operand: character_clause
                 | SIGNED_NUMBER
-                | temporal_literal
-                | spatial_literal
+                | temporal_instance
+                | spatial_instance
                 | arithmetic_expression
                 | boolean_expression
                 | property_name
@@ -75,7 +75,7 @@ is_null_predicate: is_null_operand _IS _NULL        -> is_null
 
 // Spatial Predicate
 spatial_predicate: SPATIAL_OPERATOR "(" geom_expression "," geom_expression ")"
-?geom_expression: spatial_literal
+?geom_expression: spatial_instance
                 | property_name
                 | function
 SPATIAL_OPERATOR: "S_INTERSECTS"i
@@ -89,7 +89,7 @@ SPATIAL_OPERATOR: "S_INTERSECTS"i
 
 // Temporal Predicate
 temporal_predicate: TEMPORAL_OPERATOR "(" temporal_expression "," temporal_expression ")"
-?temporal_expression: temporal_literal
+?temporal_expression: temporal_instance
                     | property_name
                     | function
 TEMPORAL_OPERATOR: "T_AFTER"i
@@ -110,16 +110,16 @@ TEMPORAL_OPERATOR: "T_AFTER"i
 
 // Array Predicate
 array_predicate: ARRAY_OPERATOR "(" array_expression "," array_expression ")"
-?array_expression: array_literal
+?array_expression: array
                  | property_name
                  | function
-array_literal: "(" ")"
-             | "(" array_element ("," array_element)* ")"
+array: "(" ")"
+     | "(" array_element ("," array_element)* ")"
 ?array_element: character_clause
               | SIGNED_NUMBER
-              | temporal_literal
-              | spatial_literal
-              | array_literal
+              | temporal_instance
+              | spatial_instance
+              | array
               | arithmetic_expression
               | boolean_expression
               | property_name
@@ -192,8 +192,9 @@ function: IDENTIFIER "(" argument_list? ")"
 argument_list: _argument ("," _argument)*
 _argument: character_clause
          | SIGNED_NUMBER
-         | temporal_literal
-         | spatial_literal
+         | temporal_instance
+         | spatial_instance
+         | array
          | arithmetic_expression
          | boolean_expression
          | property_name
@@ -212,15 +213,15 @@ _argument: character_clause
 // - Added support for `Z` in WKT which is not included in CQL2 spec.
 // - Added minimum of 2 points for LineString.
 // - Added linear ring with 4 points minimum for Polygons.
-// - Added a `geometry_literal` and restricted it to not inclue `bbox` or `geometry_collection`.
+// - Added a `geometry_instance` and restricted it to not inclue `bbox` or `geometry_collection`.
 //     - The spec allows for BBOX inside GeometryCollection which does not seem to be valid WKT.
 //     - The spec allows for GeometryCollection within GeometryCollection but GeoJSON discourages it.
-//     - Will move `geometry_collection` back to `geometry_literal` when geojson-pydantic supports it.
+//     - Will move `geometry_collection` back to `geometry_instance` when geojson-pydantic supports it.
 // - The spec does not support `EMPTY` WKT. May add it in the future.
-?spatial_literal: geometry_literal
-                | geometry_collection
-                | bbox
-?geometry_literal: point
+?spatial_instance: geometry_instance
+                 | geometry_collection
+                 | bbox
+?geometry_instance: point
                  | linestring
                  | polygon
                  | multi_point
@@ -233,7 +234,7 @@ polygon: "POLYGON"i "Z"i? polygon_coordinates
 multi_point: "MULTIPOINT"i "Z"i? multi_point_coordinates
 multi_linestring: "MULTILINESTRING"i "Z"i? multi_linestring_coordinates
 multi_polygon: "MULTIPOLYGON"i "Z"i? multi_polygon_coordinates
-geometry_collection: "GEOMETRYCOLLECTION"i "Z"i? "(" geometry_literal ("," geometry_literal)* ")"
+geometry_collection: "GEOMETRYCOLLECTION"i "Z"i? "(" geometry_instance ("," geometry_instance)* ")"
 bbox: "BBOX"i "(" SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER ["," SIGNED_NUMBER "," SIGNED_NUMBER] ")"
 // WKT Coordinates
 coordinate: SIGNED_NUMBER SIGNED_NUMBER [SIGNED_NUMBER]
@@ -248,13 +249,13 @@ multi_linestring_coordinates: "(" linestring_coordinates ("," linestring_coordin
 multi_polygon_coordinates: "(" polygon_coordinates ("," polygon_coordinates)* ")"
 
 // Date and Time Definitions
-?temporal_literal: instant_literal | interval_literal
-?instant_literal: date_instant | timestamp_instant
+?temporal_instance: instant_instance | interval_instance
+?instant_instance: date_instant | timestamp_instant
 date_instant: "DATE"i "(" date_instant_string ")"
 ?date_instant_string: "'" DATE "'"
 timestamp_instant: "TIMESTAMP"i "(" timestamp_instant_string ")"
 ?timestamp_instant_string: "'" DATE_TIME "'"
-interval_literal: "INTERVAL"i "(" instant_paramater "," instant_paramater ")"
+interval_instance: "INTERVAL"i "(" instant_paramater "," instant_paramater ")"
 ?instant_paramater: date_instant_string
                   | timestamp_instant_string
                   | DOTDOT

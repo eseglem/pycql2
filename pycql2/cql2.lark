@@ -1,3 +1,7 @@
+// Having a start rule lets us pass everything through with `?` and still have a tree.
+start: boolean_expression
+
+// CQL2 Text grammar
 ?boolean_expression: boolean_term (_OR boolean_term)*
 ?boolean_term: boolean_factor (_AND boolean_factor)*
 ?boolean_factor: boolean_primary
@@ -208,17 +212,20 @@ _argument: character_clause
 // - Added support for `Z` in WKT which is not included in CQL2 spec.
 // - Added minimum of 2 points for LineString.
 // - Added linear ring with 4 points minimum for Polygons.
-// - The spec does not support `EMPTY` WKT.
-// - The spec allows for BBOX inside GeometryCollection which does not seem to be valid WKT.
-// - The spec allows for GeometryCollection within GeometryCollection but GeoJSON discourages it.
-?spatial_literal: point
-                | linestring
-                | polygon
-                | multi_point
-                | multi_linestring
-                | multi_polygon
+// - Added a `geometry_literal` and restricted it to not inclue `bbox` or `geometry_collection`.
+//     - The spec allows for BBOX inside GeometryCollection which does not seem to be valid WKT.
+//     - The spec allows for GeometryCollection within GeometryCollection but GeoJSON discourages it.
+//     - Will move `geometry_collection` back to `geometry_literal` when geojson-pydantic supports it.
+// - The spec does not support `EMPTY` WKT. May add it in the future.
+?spatial_literal: geometry_literal
                 | geometry_collection
                 | bbox
+?geometry_literal: point
+                 | linestring
+                 | polygon
+                 | multi_point
+                 | multi_linestring
+                 | multi_polygon
 
 point: "POINT"i "Z"i? point_coordinates
 linestring: "LINESTRING"i "Z"i? linestring_coordinates
@@ -226,7 +233,7 @@ polygon: "POLYGON"i "Z"i? polygon_coordinates
 multi_point: "MULTIPOINT"i "Z"i? multi_point_coordinates
 multi_linestring: "MULTILINESTRING"i "Z"i? multi_linestring_coordinates
 multi_polygon: "MULTIPOLYGON"i "Z"i? multi_polygon_coordinates
-geometry_collection: "GEOMETRYCOLLECTION"i "Z"i? "(" spatial_literal ("," spatial_literal)* ")"
+geometry_collection: "GEOMETRYCOLLECTION"i "Z"i? "(" geometry_literal ("," geometry_literal)* ")"
 bbox: "BBOX"i "(" SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER "," SIGNED_NUMBER ["," SIGNED_NUMBER "," SIGNED_NUMBER] ")"
 // WKT Coordinates
 coordinate: SIGNED_NUMBER SIGNED_NUMBER [SIGNED_NUMBER]

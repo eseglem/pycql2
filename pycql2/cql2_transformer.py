@@ -61,6 +61,13 @@ class Cql2Transformer(Transformer):
         # Strip the `'` which aren't used in the json representation
         return dotdot.strip("'")
 
+    # This is so we can use the `?` operator on the `boolean_expression` and
+    # `boolean_term` rules. We want to be able to handle the case where there is
+    # only a single item and still output a `lark.Tree` object. Without this an
+    # input like "TRUE" would return a `lark.Token` object and the transformer
+    # would fail.
+    start = v_args(inline=True)(passthrough)
+
     # Splitting these apart within the grammar resulted in errors. All continuos
     # blocks of `or` / `and` are grouped together into single json operation.
 
@@ -364,7 +371,7 @@ class Cql2Transformer(Transformer):
 
 parser = Lark.open(
     "pycql2/cql2.lark",
-    start="boolean_expression",
+    start="start",
     maybe_placeholders=False,
 )
 transformer = Cql2Transformer()

@@ -28,3 +28,13 @@ repos:
   rev: 5.12.0
   hooks:
   - id: isort
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.1.1
+  hooks:
+  - id: mypy
+    language_version: python
+    args: [--config-file=pyproject.toml, pycql2/]
+    pass_filenames: false
+    additional_dependencies:
+    - geojson-pydantic
+    - lark

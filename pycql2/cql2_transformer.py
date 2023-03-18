@@ -495,7 +495,8 @@ class Cql2Transformer(Transformer):
 
 
 parser = Lark.open(
-    "pycql2/cql2.lark",
+    "cql2.lark",
+    rel_to=__file__,
     start="start",
     maybe_placeholders=False,
 )

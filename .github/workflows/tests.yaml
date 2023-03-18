@@ -42,7 +42,7 @@ jobs:
           python-version: 3.11
           cache: "poetry"
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-dev
       - name: Build package
         run: poetry build
       - name: Publish package

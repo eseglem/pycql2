@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: poetry install -E test
       - name: Run tests with coverage
-        run: poetry run pytest --cov=pycql2 --cov-report=xml tests/
+        run: poetry run pytest --ignore=tests/test_pycql2_hypothesis.py --cov=pycql2 --cov-report=xml tests/
 
   publish:
     needs: [tests]

@@ -2,6 +2,7 @@
 name = "pycql2"
 version = "0.1.0"
 description = "Pydantic models for OGC cql2-json and parser for cql2-text."
+readme = "README.md"
 authors = ["Erik Seglem <erik.seglem@gmail.com>"]
 include = ["pycql2/cql2.lark"]
 repository = "https://github.com/eseglem/pycql2"

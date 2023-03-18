@@ -1,11 +1,16 @@
-// Having a start rule lets us pass everything through with `?` and still have a tree.
+// Having a start rule lets us pass everything through with `?` and still have a Tree.
+// Prior to this, some things like `TRUE` would be parsed to a boolean, and passed all
+// the way up and would not results in a Tree, which would break the transformer.
 start: boolean_expression
 
 // CQL2 Text grammar
+
+// Any attempts to split OR and AND into separate rules results in parsing errors.
 ?boolean_expression: boolean_term (_OR boolean_term)*
 ?boolean_term: boolean_factor (_AND boolean_factor)*
+// Splitting NOT into a separate rule does not result in parsing errors, and is more readable.
 ?boolean_factor: boolean_primary
-               | _NOT boolean_primary                 -> not_
+               | _NOT boolean_primary                  -> not_
 ?boolean_primary: predicate
                 | BOOLEAN_LITERAL
                 | "(" boolean_expression ")"
@@ -41,9 +46,9 @@ start: boolean_expression
 is_like_predicate: character_expression _LIKE pattern_expression       -> like
                  | character_expression _NOT _LIKE pattern_expression  -> not_like
 
-?pattern_expression: "CASEI"i "(" pattern_expression ")"    -> casei
-                   | "ACCENTI"i "(" pattern_expression ")"  -> accenti
-                   | CHARACTER_LITERAL
+pattern_expression: "CASEI"i "(" pattern_expression ")"    -> casei
+                  | "ACCENTI"i "(" pattern_expression ")"  -> accenti
+                  | CHARACTER_LITERAL
 
 // Between Predicate
 is_between_predicate: numeric_expression _BETWEEN numeric_expression _AND numeric_expression         -> is_between
@@ -135,14 +140,14 @@ ARRAY_OPERATOR: "A_EQUALS"i
                       | arithmetic_expression "+" arithmetic_term  -> plus
                       | arithmetic_expression "-" arithmetic_term  -> minus
 ?arithmetic_term: power_term
-                | arithmetic_term "*" power_term     -> multiply
-                | arithmetic_term "/" power_term     -> divide
-                | arithmetic_term "%" power_term     -> modulus
-                | arithmetic_term "div"i power_term  -> int_divide
+                | arithmetic_term "*" power_term                   -> multiply
+                | arithmetic_term "/" power_term                   -> divide
+                | arithmetic_term "%" power_term                   -> modulus
+                | arithmetic_term "div"i power_term                -> int_divide
 ?power_term: arithmetic_factor
-           | arithmetic_factor "^" arithmetic_factor -> power
+           | arithmetic_factor "^" arithmetic_factor               -> power
 ?arithmetic_factor: arithmetic_operand
-                  | "-" arithmetic_operand                          -> negative
+                  | "-" arithmetic_operand                         -> negative
                   | "(" arithmetic_expression ")"
 ?arithmetic_operand: SIGNED_NUMBER
                    | property_name
@@ -200,7 +205,7 @@ _argument: character_clause
          | property_name
          | function
 
-?character_expression: character_clause
+character_expression: character_clause
                      | property_name
                      | function
 ?character_clause: "CASEI"i "(" character_expression ")"      -> casei

@@ -1,7 +1,17 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Generic, List, Literal, Sequence, Tuple, TypeVar, Union
+from enum import Enum
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    List,
+    Literal,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
@@ -9,8 +19,8 @@ from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt, StrictStr, c
 from pydantic.generics import GenericModel
 
 # The use of `Strict*` is necessary in a few places because pydantic will convert
-# bools to numbers and vice versa. As well as various types to strings. This should
-# hopefully be fixed in pydantic2.
+# booleans to numbers and vice versa. As well as various types to strings. This
+# should hopefully be fixed by Pydantic v2.
 
 # Since we are using strict, we need to use a union to allow for ints and floats
 # in places we want to have numbers.
@@ -69,53 +79,51 @@ class IsInListPredicate(BaseModel):
 
 class IsNullPredicate(BaseModel):
     op: Literal["isNull"]
-    args: Union[
-        CharacterExpression,
-        NumericExpression,
-        TemporalExpression,
-        BooleanExpression,
-        GeomExpression,
-    ]
+    args: IsNullOperand
 
     def __str__(self) -> str:
         return f"{self.args} IS NULL"
 
 
+class SpatialOperator(str, Enum):
+    s_contains = "s_contains"
+    s_crosses = "s_crosses"
+    s_disjoint = "s_disjoint"
+    s_equals = "s_equals"
+    s_intersects = "s_intersects"
+    s_overlaps = "s_overlaps"
+    s_touches = "s_touches"
+    s_within = "s_within"
+
+
 class SpatialPredicate(BaseModel):
-    op: Literal[
-        "s_contains",
-        "s_crosses",
-        "s_disjoint",
-        "s_equals",
-        "s_intersects",
-        "s_overlaps",
-        "s_touches",
-        "s_within",
-    ]
+    op: SpatialOperator
     args: Tuple[GeomExpression, GeomExpression]
 
     def __str__(self) -> str:
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
 
 
+class TemporalOperator(str, Enum):
+    t_after = "t_after"
+    t_before = "t_before"
+    t_contains = "t_contains"
+    t_disjoint = "t_disjoint"
+    t_during = "t_during"
+    t_equals = "t_equals"
+    t_finishedBy = "t_finishedBy"
+    t_finishes = "t_finishes"
+    t_intersects = "t_intersects"
+    t_meets = "t_meets"
+    t_metBy = "t_metBy"
+    t_overlappedBy = "t_overlappedBy"
+    t_overlaps = "t_overlaps"
+    t_startedBy = "t_startedBy"
+    t_starts = "t_starts"
+
+
 class TemporalPredicate(BaseModel):
-    op: Literal[
-        "t_after",
-        "t_before",
-        "t_contains",
-        "t_disjoint",
-        "t_during",
-        "t_equals",
-        "t_finishedBy",
-        "t_finishes",
-        "t_intersects",
-        "t_meets",
-        "t_metBy",
-        "t_overlappedBy",
-        "t_overlaps",
-        "t_startedBy",
-        "t_starts",
-    ]
+    op: TemporalOperator
     args: Tuple[TemporalExpression, TemporalExpression]
 
     def __str__(self) -> str:
@@ -123,16 +131,7 @@ class TemporalPredicate(BaseModel):
 
 
 class Array(BaseModel):
-    __root__: List[
-        Union[
-            CharacterExpression,
-            NumericExpression,
-            BooleanExpression,
-            GeomExpression,
-            TemporalExpression,
-            Array,
-        ]
-    ]
+    __root__: List[ArrayElement]
 
     def __str__(self) -> str:
         return f"({join_list(self.__root__, ', ')})"
@@ -145,8 +144,15 @@ class ArrayExpression(BaseModel):
         return f"({self.__root__[0]}, {self.__root__[1]})"
 
 
+class ArrayOperator(str, Enum):
+    a_containedBy = "a_containedBy"
+    a_contains = "a_contains"
+    a_equals = "a_equals"
+    a_overlaps = "a_overlaps"
+
+
 class ArrayPredicate(BaseModel):
-    op: Literal["a_containedBy", "a_contains", "a_equals", "a_overlaps"]
+    op: ArrayOperator
     args: ArrayExpression
 
     def __str__(self) -> str:
@@ -154,15 +160,7 @@ class ArrayPredicate(BaseModel):
 
 
 class BooleanExpression(BaseModel):
-    __root__: Union[
-        AndOrExpression,
-        NotExpression,
-        ComparisonPredicate,
-        SpatialPredicate,
-        TemporalPredicate,
-        ArrayPredicate,
-        StrictBool,
-    ]
+    __root__: BooleanExpressionItems
 
     def __str__(self) -> str:
         # If it's a bool, we uppercase it.
@@ -172,11 +170,18 @@ class BooleanExpression(BaseModel):
         return str(self.__root__)
 
 
+# Type checking does not like `conlist`, so use a conditional here to avoid the error.
+# Due to the recursive nature of the grammar we cannot use `Field` here because it
+# does not properly enforce min / max items when nested. May be fixed by pydantic2.
+if TYPE_CHECKING:
+    BooleanExpressionList = List[BooleanExpression]
+else:
+    BooleanExpressionList = conlist(item_type=BooleanExpression, min_items=2)
+
+
 class AndOrExpression(BaseModel):
     op: Literal["or", "and"]
-    args: conlist(item_type=BooleanExpression, min_items=2)  # type: ignore[valid-type]
-    # Cannot use `Field` here because everything is recursive and it does not properly
-    # enforce min / max items on anything. May be fixed by pydantic2.
+    args: BooleanExpressionList
 
     def __str__(self) -> str:
         # May result in excessive parens, but guarantees correctness.
@@ -195,19 +200,7 @@ class ArithmeticExpression(BaseModel):
 
 class Function(BaseModel):
     name: StrictStr
-    args: Union[
-        None,
-        List[
-            Union[
-                CharacterExpression,
-                NumericExpression,
-                BooleanExpression,
-                GeomExpression,
-                TemporalExpression,
-                Array,
-            ]
-        ],
-    ] = None
+    args: FunctionArguments = None
 
     def __str__(self) -> str:
         # If self.args, comma join them. Otherwise, empty string. Inside parens.
@@ -277,13 +270,7 @@ class IntervalInstance(BaseModel):
 
 
 class CharacterExpression(BaseModel):
-    __root__: Union[
-        Casei[CharacterExpression],
-        Accenti[CharacterExpression],
-        StrictStr,
-        PropertyRef,
-        FunctionRef,
-    ]
+    __root__: CharacterExpressionItems
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
@@ -294,7 +281,7 @@ class CharacterExpression(BaseModel):
 
 
 class PatternExpression(BaseModel):
-    __root__: Union[Casei[PatternExpression], Accenti[PatternExpression], StrictStr]
+    __root__: PatternExpressionItems
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
@@ -351,6 +338,55 @@ ArithmeticOperandsItems = Union[
     ArithmeticExpression, PropertyRef, FunctionRef, StrictFloatOrInt
 ]
 ArrayExpressionItems = Union[Array, PropertyRef, FunctionRef]
+PatternExpressionItems = Union[
+    Casei[PatternExpression], Accenti[PatternExpression], StrictStr
+]
+CharacterExpressionItems = Union[
+    Casei[CharacterExpression],
+    Accenti[CharacterExpression],
+    StrictStr,
+    PropertyRef,
+    FunctionRef,
+]
+
+# Extra types to match the cql2-text grammar better
+IsNullOperand = Union[
+    CharacterExpression,
+    NumericExpression,
+    TemporalExpression,
+    BooleanExpression,
+    GeomExpression,
+]
+ArrayElement = Union[
+    CharacterExpression,
+    NumericExpression,
+    BooleanExpression,
+    GeomExpression,
+    TemporalExpression,
+    Array,
+]
+FunctionArguments = Union[
+    None,
+    List[
+        Union[
+            CharacterExpression,
+            NumericExpression,
+            BooleanExpression,
+            GeomExpression,
+            TemporalExpression,
+            Array,
+        ]
+    ],
+]
+BooleanExpressionItems = Union[
+    AndOrExpression,
+    NotExpression,
+    ComparisonPredicate,
+    SpatialPredicate,
+    TemporalPredicate,
+    ArrayPredicate,
+    StrictBool,
+]
 
 # Update all the forward references
 Accenti.update_forward_refs()

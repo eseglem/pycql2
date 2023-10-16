@@ -229,13 +229,13 @@ test = ["pytest", "pytest-cov", "shapely"]
 
 [[package]]
 name = "hypothesis"
-version = "6.80.0"
+version = "6.87.1"
 description = "A library for property-based testing"
 optional = true
 python-versions = ">=3.8"
 files = [
-    {file = "hypothesis-6.80.0-py3-none-any.whl", hash = "sha256:63dc6b094b52da6180ca50edd63bf08184bc96810f8624fdbe66578aaf377993"},
-    {file = "hypothesis-6.80.0.tar.gz", hash = "sha256:75d74da36fd3837b5b3fe15211dabc7389e78d882bf2c91bab2184ccf91fe64c"},
+    {file = "hypothesis-6.87.1-py3-none-any.whl", hash = "sha256:6b03e774d7ddddc29810e58ba4c41b5c9a894427aaf336e6400c560655a7449b"},
+    {file = "hypothesis-6.87.1.tar.gz", hash = "sha256:13615a8f7fa27d102c43ab2f92eaef519988700f3ca8129bc6340d36dec372dd"},
 ]
 
 [package.dependencies]

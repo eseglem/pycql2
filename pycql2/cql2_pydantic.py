@@ -4,9 +4,11 @@ from datetime import date, datetime
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
+    Any,
     Generic,
     List,
     Literal,
+    MutableSequence,
     Sequence,
     Tuple,
     TypeVar,
@@ -15,7 +17,17 @@ from typing import (
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
-from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, StrictStr
+from pydantic import (
+    BaseModel,
+    Field,
+    RootModel,
+    StrictBool,
+    StrictFloat,
+    StrictInt,
+    StrictStr,
+    ValidatorFunctionWrapHandler,
+    model_validator,
+)
 from typing_extensions import Annotated
 
 # The use of `Strict*` is necessary in a few places because pydantic will convert
@@ -130,18 +142,29 @@ class TemporalPredicate(BaseModel):
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
 
 
-class Array(BaseModel):
-    __root__: List[ArrayElement]
+class Array(RootModel):
+    root: MutableSequence[ArrayElement]
 
     def __str__(self) -> str:
-        return f"({join_list(self.__root__, ', ')})"
+        return f"({join_list(self.root, ', ')})"
 
 
 class ArrayExpression(BaseModel):
-    __root__: Tuple[ArrayExpressionItems, ArrayExpressionItems]
+    root: Tuple[ArrayExpressionItems, ArrayExpressionItems]
 
     def __str__(self) -> str:
-        return f"({self.__root__[0]}, {self.__root__[1]})"
+        return f"({self.root[0]}, {self.root[1]})"
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def validate_root(
+        cls, values: Any, handler: ValidatorFunctionWrapHandler
+    ) -> ArrayExpression:
+        # When input from json lists don't get validated this way
+        if isinstance(values, Sequence) and len(values) == 2:
+            return ArrayExpression(root=values)  # type: ignore [arg-type]
+        result = handler(values)
+        return result
 
 
 class ArrayOperator(str, Enum):
@@ -159,15 +182,15 @@ class ArrayPredicate(BaseModel):
         return f"{self.op.upper()}{self.args}"
 
 
-class BooleanExpression(BaseModel):
-    __root__: BooleanExpressionItems
+class BooleanExpression(RootModel):
+    root: BooleanExpressionItems
 
     def __str__(self) -> str:
         # If it's a bool, we uppercase it.
-        if isinstance(self.__root__, bool):
-            return str(self.__root__).upper()
+        if isinstance(self.root, bool):
+            return str(self.root).upper()
         # Otherwise, we return the string representation of the root.
-        return str(self.__root__)
+        return str(self.root)
 
 
 # Type checking does not like `conlist`, so use a conditional here to avoid the error.
@@ -176,7 +199,7 @@ class BooleanExpression(BaseModel):
 if TYPE_CHECKING:
     BooleanExpressionList = List[BooleanExpression]
 else:
-    BooleanExpressionList = Annotated[List[BooleanExpression], Field(min_items=2)]
+    BooleanExpressionList = Annotated[List[BooleanExpression], Field(min_length=2)]
 
 
 class AndOrExpression(BaseModel):
@@ -245,21 +268,21 @@ class BboxLiteral(BaseModel):
         return f"BBOX{self.bbox}"
 
 
-class IntervalArrayItems(BaseModel):
-    __root__: Union[datetime, date, Literal[".."], PropertyRef, FunctionRef]
+class IntervalArrayItems(RootModel):
+    root: Union[datetime, date, Literal[".."], PropertyRef, FunctionRef]
 
     def __str__(self) -> str:
         # If it is a datetime, format it as iso with `Z` at the end. Note this will
         # always include the microseconds, even if they are 0.
-        if isinstance(self.__root__, datetime):
-            return f"""'{self.__root__.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}'"""
+        if isinstance(self.root, datetime):
+            return f"""'{self.root.strftime("%Y-%m-%dT%H:%M:%S.%fZ")}'"""
         # If it is a date, format with built-in isoformat
-        if isinstance(self.__root__, date):
-            return f"'{self.__root__.isoformat()}'"
-        if self.__root__ == "..":
+        if isinstance(self.root, date):
+            return f"'{self.root.isoformat()}'"
+        if self.root == "..":
             return "'..'"
         # Otherwise use the string representation of the root.
-        return str(self.__root__)
+        return str(self.root)
 
 
 class IntervalInstance(BaseModel):
@@ -269,26 +292,26 @@ class IntervalInstance(BaseModel):
         return f"INTERVAL({self.interval[0]}, {self.interval[1]})"
 
 
-class CharacterExpression(BaseModel):
-    __root__: CharacterExpressionItems
+class CharacterExpression(RootModel):
+    root: CharacterExpressionItems
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
-        if isinstance(self.__root__, str):
-            return make_char_literal(self.__root__)
+        if isinstance(self.root, str):
+            return make_char_literal(self.root)
         # Otherwise, return the string representation of the root
-        return str(self.__root__)
+        return str(self.root)
 
 
-class PatternExpression(BaseModel):
-    __root__: PatternExpressionItems
+class PatternExpression(RootModel):
+    root: PatternExpressionItems
 
     def __str__(self) -> str:
         # If it is already a string, make it a char literal
-        if isinstance(self.__root__, str):
-            return make_char_literal(self.__root__)
+        if isinstance(self.root, str):
+            return make_char_literal(self.root)
         # Otherwise, return the string representation of the root
-        return str(self.__root__)
+        return str(self.root)
 
 
 E = TypeVar("E", bound=Union[CharacterExpression, PatternExpression])
@@ -308,11 +331,11 @@ class Accenti(BaseModel, Generic[E]):
         return f"ACCENTI({self.accenti})"
 
 
-class GeometryLiteral(BaseModel):
-    __root__: Union[Geometry, GeometryCollection]
+class GeometryLiteral(RootModel):
+    root: Union[Geometry, GeometryCollection]
 
     def __str__(self) -> str:
-        return self.__root__.wkt
+        return self.root.wkt
 
 
 ComparisonPredicate = Union[
@@ -389,28 +412,27 @@ BooleanExpressionItems = Union[
 ]
 
 # Update all the forward references
-Accenti.update_forward_refs()
-AndOrExpression.update_forward_refs()
-ArithmeticExpression.update_forward_refs()
-ArrayExpression.update_forward_refs()
-Array.update_forward_refs()
-ArrayPredicate.update_forward_refs()
-BboxLiteral.update_forward_refs()
-BinaryComparisonPredicate.update_forward_refs()
-BooleanExpression.update_forward_refs()
-Casei.update_forward_refs()
-CharacterExpression.update_forward_refs()
-DateInstant.update_forward_refs()
-Function.update_forward_refs()
-FunctionRef.update_forward_refs()
-IntervalInstance.update_forward_refs()
-IsBetweenPredicate.update_forward_refs()
-IsInListPredicate.update_forward_refs()
-IsLikePredicate.update_forward_refs()
-IsNullPredicate.update_forward_refs()
-NotExpression.update_forward_refs()
-PatternExpression.update_forward_refs()
-PropertyRef.update_forward_refs()
-SpatialPredicate.update_forward_refs()
-TemporalPredicate.update_forward_refs()
-TimestampInstant.update_forward_refs()
+Accenti.model_rebuild()
+AndOrExpression.model_rebuild()
+ArithmeticExpression.model_rebuild()
+ArrayExpression.model_rebuild()
+ArrayPredicate.model_rebuild()
+BboxLiteral.model_rebuild()
+BinaryComparisonPredicate.model_rebuild()
+BooleanExpression.model_rebuild()
+Casei.model_rebuild()
+CharacterExpression.model_rebuild()
+DateInstant.model_rebuild()
+Function.model_rebuild()
+FunctionRef.model_rebuild()
+IntervalInstance.model_rebuild()
+IsBetweenPredicate.model_rebuild()
+IsInListPredicate.model_rebuild()
+IsLikePredicate.model_rebuild()
+IsNullPredicate.model_rebuild()
+NotExpression.model_rebuild()
+PatternExpression.model_rebuild()
+PropertyRef.model_rebuild()
+SpatialPredicate.model_rebuild()
+TemporalPredicate.model_rebuild()
+TimestampInstant.model_rebuild()

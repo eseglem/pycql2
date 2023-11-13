@@ -89,7 +89,7 @@ def _passthrough(_self: Cql2Transformer, args: Any) -> Any:
 def _make_boolean_expression(arg: BooleanExpressionOrItems) -> BooleanExpression:
     """Ensure arg is a BooleanExpression."""
     if not isinstance(arg, BooleanExpression):
-        arg = BooleanExpression(__root__=arg)
+        arg = BooleanExpression(root=arg)
     return arg
 
 
@@ -184,13 +184,13 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def pattern_expression(self, arg: PatternExpressionItems) -> PatternExpression:
-        return PatternExpression(__root__=arg)
+        return PatternExpression(root=arg)
 
     @v_args(inline=True)
     def character_expression(
         self, arg: CharacterExpressionItems
     ) -> CharacterExpression:
-        return CharacterExpression(__root__=arg)
+        return CharacterExpression(root=arg)
 
     @v_args(inline=True)
     def like(self, e1: CharacterExpression, e2: PatternExpression) -> IsLikePredicate:
@@ -200,9 +200,7 @@ class Cql2Transformer(Transformer):
     def not_like(self, e1: CharacterExpression, e2: PatternExpression) -> NotExpression:
         return NotExpression(
             op="not",
-            args=(
-                BooleanExpression(__root__=IsLikePredicate(op="like", args=(e1, e2))),
-            ),
+            args=(BooleanExpression(root=IsLikePredicate(op="like", args=(e1, e2))),),
         )
 
     # Between Predicate
@@ -221,7 +219,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    __root__=IsBetweenPredicate(op="between", args=(e1, e2, e3))
+                    root=IsBetweenPredicate(op="between", args=(e1, e2, e3))
                 ),
             ),
         )
@@ -244,7 +242,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    __root__=IsInListPredicate(
+                    root=IsInListPredicate(
                         op="in", args=(scalar_expression, list_values[0])
                     )
                 ),
@@ -263,7 +261,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    __root__=IsNullPredicate(op="isNull", args=is_null_operand)
+                    root=IsNullPredicate(op="isNull", args=is_null_operand)
                 ),
             ),
         )
@@ -294,7 +292,7 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def array(self, *array_elements: ArrayElement) -> Array:
-        return Array(__root__=list(array_elements))
+        return Array(root=list(array_elements))
 
     @v_args(inline=True)
     def array_predicate(
@@ -305,7 +303,7 @@ class Cql2Transformer(Transformer):
         if op.endswith("by"):
             op = op[:-2] + "By"
         op = ArrayOperator(op)
-        return ArrayPredicate(op=op, args=ArrayExpression(__root__=(e1, e2)))
+        return ArrayPredicate(op=op, args=ArrayExpression(root=(e1, e2)))
 
     # Arithmetic
 
@@ -385,12 +383,48 @@ class Cql2Transformer(Transformer):
         return PropertyRef(property=property_name.strip('"'))
 
     @v_args(inline=True)
-    def casei(self, character_expression: CharacterExpression) -> Casei:
-        return Casei(casei=character_expression)
+    def casei(
+        self,
+        expression: Union[
+            CharacterExpression,
+            PatternExpression,
+            Casei[CharacterExpression],
+            Casei[PatternExpression],
+            Accenti[CharacterExpression],
+            Accenti[PatternExpression],
+        ],
+    ) -> Casei:
+        # If the input is a Character / Pattern Expression, we subclass Casei
+        # with that type.
+        if isinstance(expression, (CharacterExpression, PatternExpression)):
+            return Casei[type(expression)](casei=expression)  # type: ignore [misc]
+        # Otherwise it is already a subclass of Casei or Accenti, so we need
+        # to use the type from its generic metadata.
+        return Casei[expression.__pydantic_generic_metadata__["args"][0]](  # type: ignore [misc]
+            casei=expression
+        )
 
     @v_args(inline=True)
-    def accenti(self, character_expression: CharacterExpression) -> Accenti:
-        return Accenti(accenti=character_expression)
+    def accenti(
+        self,
+        expression: Union[
+            CharacterExpression,
+            PatternExpression,
+            Casei[CharacterExpression],
+            Casei[PatternExpression],
+            Accenti[CharacterExpression],
+            Accenti[PatternExpression],
+        ],
+    ) -> Accenti:
+        # If the input is a Character / Pattern Expression, we subclass Accenti
+        # with that type.
+        if isinstance(expression, (CharacterExpression, PatternExpression)):
+            return Accenti[type(expression)](accenti=expression)  # type: ignore [misc]
+        # Otherwise it is already a subclass of Casei or Accenti, so we need
+        # to use the type from its generic metadata.
+        return Accenti[expression.__pydantic_generic_metadata__["args"][0]](  # type: ignore [misc]
+            accenti=expression
+        )
 
     # Spatial Definitions
 

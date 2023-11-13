@@ -15,8 +15,8 @@ from typing import (
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
-from pydantic import BaseModel, StrictBool, StrictFloat, StrictInt, StrictStr, conlist
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, StrictStr
+from typing_extensions import Annotated
 
 # The use of `Strict*` is necessary in a few places because pydantic will convert
 # booleans to numbers and vice versa. As well as various types to strings. This
@@ -176,7 +176,7 @@ class BooleanExpression(BaseModel):
 if TYPE_CHECKING:
     BooleanExpressionList = List[BooleanExpression]
 else:
-    BooleanExpressionList = conlist(item_type=BooleanExpression, min_items=2)
+    BooleanExpressionList = Annotated[List[BooleanExpression], Field(min_items=2)]
 
 
 class AndOrExpression(BaseModel):
@@ -294,14 +294,14 @@ class PatternExpression(BaseModel):
 E = TypeVar("E", bound=Union[CharacterExpression, PatternExpression])
 
 
-class Casei(GenericModel, Generic[E]):
+class Casei(BaseModel, Generic[E]):
     casei: E
 
     def __str__(self) -> str:
         return f"CASEI({self.casei})"
 
 
-class Accenti(GenericModel, Generic[E]):
+class Accenti(BaseModel, Generic[E]):
     accenti: E
 
     def __str__(self) -> str:

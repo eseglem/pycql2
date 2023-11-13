@@ -2,6 +2,7 @@
 name = "pycql2"
 version = "0.1.0"
 description = "Pydantic models for OGC cql2-json and parser for cql2-text."
+license = "MIT"
 readme = "README.md"
 authors = ["Erik Seglem <erik.seglem@gmail.com>"]
 include = ["pycql2/cql2.lark"]
@@ -27,15 +28,15 @@ pydantic = "^1.9.0"
 geojson-pydantic = "^0.5.0"
 lark = "^1.0.0"
 
-pytest = {version = ">=7.2", optional = true}
-coverage = {version = ">=7.2", optional = true, extras = ["toml"]}
-pytest-cov = {version = ">=4.0", optional = true}
-hypothesis = {version = ">=6.68.2", optional = true}
-black = {version = ">=23.1.0", optional = true}
-ruff = {version = ">=0.0.254", optional = true}
-mypy = {version = ">=1.1.0", optional = true}
-isort = {version = ">=5.12.0", optional = true}
-pre-commit = {version = ">=3.1.1", optional = true}
+pytest = { version = ">=7.2", optional = true }
+coverage = { version = ">=7.2", optional = true, extras = ["toml"] }
+pytest-cov = { version = ">=4.0", optional = true }
+hypothesis = { version = ">=6.68.2", optional = true }
+black = { version = ">=23.1.0", optional = true }
+ruff = { version = ">=0.0.254", optional = true }
+mypy = { version = ">=1.1.0", optional = true }
+isort = { version = ">=5.12.0", optional = true }
+pre-commit = { version = ">=3.1.1", optional = true }
 
 [tool.poetry.extras]
 dev = ["black", "ruff", "mypy", "pre-commit", "isort"]
@@ -58,10 +59,7 @@ source = ["pycql2"]
 branch = true
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.mypy]
 python_version = 3.8

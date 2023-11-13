@@ -11,3 +11,10 @@ updates:
     schedule:
       interval: "monthly"
     versioning-strategy: lockfile-only
+    groups:
+      all-no-major:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

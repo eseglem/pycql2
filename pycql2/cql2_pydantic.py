@@ -2,18 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import Enum
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Generic,
-    List,
-    Literal,
-    MutableSequence,
-    Sequence,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, List, Literal, MutableSequence, Sequence, Tuple, Union
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
@@ -21,12 +10,11 @@ from pydantic import (
     BaseModel,
     Field,
     RootModel,
+    Strict,
     StrictBool,
     StrictFloat,
     StrictInt,
     StrictStr,
-    ValidatorFunctionWrapHandler,
-    model_validator,
 )
 from typing_extensions import Annotated
 
@@ -47,6 +35,15 @@ def make_char_literal(string: str) -> str:
 
 def join_list(items: Sequence, sep: str) -> str:
     return sep.join(str(item) for item in items)
+
+
+# It would be nice to do something like `CharacterLiteral(str)`, but that causes
+# other issues. This seems like the best solution for the time being.
+class CharacterLiteral(RootModel):
+    root: Annotated[str, Strict()]
+
+    def __str__(self) -> str:
+        return make_char_literal(self.root)
 
 
 class NotExpression(BaseModel):
@@ -149,22 +146,11 @@ class Array(RootModel):
         return f"({join_list(self.root, ', ')})"
 
 
-class ArrayExpression(BaseModel):
+class ArrayExpression(RootModel):
     root: Tuple[ArrayExpressionItems, ArrayExpressionItems]
 
     def __str__(self) -> str:
         return f"({self.root[0]}, {self.root[1]})"
-
-    @model_validator(mode="wrap")
-    @classmethod
-    def validate_root(
-        cls, values: Any, handler: ValidatorFunctionWrapHandler
-    ) -> ArrayExpression:
-        # When input from json lists don't get validated this way
-        if isinstance(values, Sequence) and len(values) == 2:
-            return ArrayExpression(root=values)  # type: ignore [arg-type]
-        result = handler(values)
-        return result
 
 
 class ArrayOperator(str, Enum):
@@ -292,43 +278,34 @@ class IntervalInstance(BaseModel):
         return f"INTERVAL({self.interval[0]}, {self.interval[1]})"
 
 
-class CharacterExpression(RootModel):
-    root: CharacterExpressionItems
-
-    def __str__(self) -> str:
-        # If it is already a string, make it a char literal
-        if isinstance(self.root, str):
-            return make_char_literal(self.root)
-        # Otherwise, return the string representation of the root
-        return str(self.root)
-
-
-class PatternExpression(RootModel):
-    root: PatternExpressionItems
-
-    def __str__(self) -> str:
-        # If it is already a string, make it a char literal
-        if isinstance(self.root, str):
-            return make_char_literal(self.root)
-        # Otherwise, return the string representation of the root
-        return str(self.root)
-
-
-E = TypeVar("E", bound=Union[CharacterExpression, PatternExpression])
-
-
-class Casei(BaseModel, Generic[E]):
-    casei: E
+class _Casei(BaseModel):
+    casei: Union[CharacterExpression, PatternExpression]
 
     def __str__(self) -> str:
         return f"CASEI({self.casei})"
 
 
-class Accenti(BaseModel, Generic[E]):
-    accenti: E
+class CaseiCharacterExpression(_Casei):
+    casei: CharacterExpression
+
+
+class CaseiPatternExpression(_Casei):
+    casei: PatternExpression
+
+
+class _Accenti(BaseModel):
+    accenti: Union[CharacterExpression, PatternExpression]
 
     def __str__(self) -> str:
         return f"ACCENTI({self.accenti})"
+
+
+class AccentiCharacterExpression(_Accenti):
+    accenti: CharacterExpression
+
+
+class AccentiPatternExpression(_Accenti):
+    accenti: PatternExpression
 
 
 class GeometryLiteral(RootModel):
@@ -338,6 +315,16 @@ class GeometryLiteral(RootModel):
         return self.root.wkt
 
 
+CharacterClause = Union[
+    CaseiCharacterExpression,
+    AccentiCharacterExpression,
+    CharacterLiteral,
+]
+CharacterExpression = Union[
+    CharacterClause,
+    PropertyRef,
+    FunctionRef,
+]
 ComparisonPredicate = Union[
     BinaryComparisonPredicate,
     IsLikePredicate,
@@ -355,33 +342,26 @@ TemporalInstance = Union[InstantInstance, IntervalInstance]
 TemporalExpression = Union[TemporalInstance, PropertyRef, FunctionRef]
 TemporalInstantExpression = Union[InstantInstance, PropertyRef, FunctionRef]
 ScalarExpression = Union[
-    TemporalInstantExpression, BooleanExpression, CharacterExpression, NumericExpression
+    TemporalInstantExpression, BooleanExpression, CharacterClause, NumericExpression
 ]
 ArithmeticOperandsItems = Union[
     ArithmeticExpression, PropertyRef, FunctionRef, StrictFloatOrInt
 ]
 ArrayExpressionItems = Union[Array, PropertyRef, FunctionRef]
-PatternExpressionItems = Union[
-    Casei[PatternExpression], Accenti[PatternExpression], StrictStr
-]
-CharacterExpressionItems = Union[
-    Casei[CharacterExpression],
-    Accenti[CharacterExpression],
-    StrictStr,
-    PropertyRef,
-    FunctionRef,
+PatternExpression = Union[
+    CaseiPatternExpression, AccentiPatternExpression, CharacterLiteral
 ]
 
 # Extra types to match the cql2-text grammar better
 IsNullOperand = Union[
-    CharacterExpression,
+    CharacterClause,
     NumericExpression,
     TemporalExpression,
     BooleanExpression,
     GeomExpression,
 ]
 ArrayElement = Union[
-    CharacterExpression,
+    CharacterClause,
     NumericExpression,
     BooleanExpression,
     GeomExpression,
@@ -392,7 +372,7 @@ FunctionArguments = Union[
     None,
     List[
         Union[
-            CharacterExpression,
+            CharacterClause,
             NumericExpression,
             BooleanExpression,
             GeomExpression,
@@ -412,7 +392,8 @@ BooleanExpressionItems = Union[
 ]
 
 # Update all the forward references
-Accenti.model_rebuild()
+AccentiCharacterExpression.model_rebuild()
+AccentiPatternExpression.model_rebuild()
 AndOrExpression.model_rebuild()
 ArithmeticExpression.model_rebuild()
 ArrayExpression.model_rebuild()
@@ -420,8 +401,8 @@ ArrayPredicate.model_rebuild()
 BboxLiteral.model_rebuild()
 BinaryComparisonPredicate.model_rebuild()
 BooleanExpression.model_rebuild()
-Casei.model_rebuild()
-CharacterExpression.model_rebuild()
+CaseiCharacterExpression.model_rebuild()
+CaseiPatternExpression.model_rebuild()
 DateInstant.model_rebuild()
 Function.model_rebuild()
 FunctionRef.model_rebuild()
@@ -431,7 +412,6 @@ IsInListPredicate.model_rebuild()
 IsLikePredicate.model_rebuild()
 IsNullPredicate.model_rebuild()
 NotExpression.model_rebuild()
-PatternExpression.model_rebuild()
 PropertyRef.model_rebuild()
 SpatialPredicate.model_rebuild()
 TemporalPredicate.model_rebuild()

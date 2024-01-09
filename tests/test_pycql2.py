@@ -90,4 +90,5 @@ def test_text_to_json(text_file: str) -> None:
     expected = BooleanExpression.model_validate(json_data)
     # Compare the two. We use __root__ because the json data is wrapped
     # by the BooleanExpression model.
-    assert transformer.transform(model) == expected
+    output = transformer.transform(model)
+    assert output == expected

@@ -1,0 +1,13 @@
+{
+  "op": "=",
+  "args": [
+    {
+      "property": "owner"
+    },
+    {
+      "casei": {
+        "accenti": "Beyoncé"
+      }
+    }
+  ]
+}

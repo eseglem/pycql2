@@ -24,7 +24,8 @@ from geojson_pydantic.types import (
 from lark import Lark, Transformer, v_args
 
 from pycql2.cql2_pydantic import (
-    Accenti,
+    AccentiCharacterExpression,
+    AccentiPatternExpression,
     AndOrExpression,
     ArithmeticExpression,
     ArithmeticOperandsItems,
@@ -38,9 +39,9 @@ from pycql2.cql2_pydantic import (
     BinaryComparisonPredicate,
     BooleanExpression,
     BooleanExpressionItems,
-    Casei,
+    CaseiCharacterExpression,
+    CaseiPatternExpression,
     CharacterExpression,
-    CharacterExpressionItems,
     DateInstant,
     Function,
     FunctionArguments,
@@ -56,7 +57,6 @@ from pycql2.cql2_pydantic import (
     NotExpression,
     NumericExpression,
     PatternExpression,
-    PatternExpressionItems,
     PropertyRef,
     ScalarExpression,
     SpatialOperator,
@@ -181,16 +181,6 @@ class Cql2Transformer(Transformer):
         return BinaryComparisonPredicate(op=">=", args=(e1, e2))
 
     # Like Predicate
-
-    @v_args(inline=True)
-    def pattern_expression(self, arg: PatternExpressionItems) -> PatternExpression:
-        return PatternExpression(root=arg)
-
-    @v_args(inline=True)
-    def character_expression(
-        self, arg: CharacterExpressionItems
-    ) -> CharacterExpression:
-        return CharacterExpression(root=arg)
 
     @v_args(inline=True)
     def like(self, e1: CharacterExpression, e2: PatternExpression) -> IsLikePredicate:
@@ -383,48 +373,32 @@ class Cql2Transformer(Transformer):
         return PropertyRef(property=property_name.strip('"'))
 
     @v_args(inline=True)
-    def casei(
+    def casei_pattern(
         self,
-        expression: Union[
-            CharacterExpression,
-            PatternExpression,
-            Casei[CharacterExpression],
-            Casei[PatternExpression],
-            Accenti[CharacterExpression],
-            Accenti[PatternExpression],
-        ],
-    ) -> Casei:
-        # If the input is a Character / Pattern Expression, we subclass Casei
-        # with that type.
-        if isinstance(expression, (CharacterExpression, PatternExpression)):
-            return Casei[type(expression)](casei=expression)  # type: ignore [misc]
-        # Otherwise it is already a subclass of Casei or Accenti, so we need
-        # to use the type from its generic metadata.
-        return Casei[expression.__pydantic_generic_metadata__["args"][0]](  # type: ignore [misc]
-            casei=expression
-        )
+        expression: PatternExpression,
+    ) -> CaseiPatternExpression:
+        return CaseiPatternExpression(casei=expression)
 
     @v_args(inline=True)
-    def accenti(
+    def casei_character(
         self,
-        expression: Union[
-            CharacterExpression,
-            PatternExpression,
-            Casei[CharacterExpression],
-            Casei[PatternExpression],
-            Accenti[CharacterExpression],
-            Accenti[PatternExpression],
-        ],
-    ) -> Accenti:
-        # If the input is a Character / Pattern Expression, we subclass Accenti
-        # with that type.
-        if isinstance(expression, (CharacterExpression, PatternExpression)):
-            return Accenti[type(expression)](accenti=expression)  # type: ignore [misc]
-        # Otherwise it is already a subclass of Casei or Accenti, so we need
-        # to use the type from its generic metadata.
-        return Accenti[expression.__pydantic_generic_metadata__["args"][0]](  # type: ignore [misc]
-            accenti=expression
-        )
+        expression: CharacterExpression,
+    ) -> CaseiCharacterExpression:
+        return CaseiCharacterExpression(casei=expression)
+
+    @v_args(inline=True)
+    def accenti_pattern(
+        self,
+        expression: PatternExpression,
+    ) -> AccentiPatternExpression:
+        return AccentiPatternExpression(accenti=expression)
+
+    @v_args(inline=True)
+    def accenti_character(
+        self,
+        expression: CharacterExpression,
+    ) -> AccentiCharacterExpression:
+        return AccentiCharacterExpression(accenti=expression)
 
     # Spatial Definitions
 
@@ -483,9 +457,8 @@ class Cql2Transformer(Transformer):
     @v_args(inline=True)
     def bbox(self, *coordinates: float) -> BboxLiteral:
         # We know that `coordinates` will always be 4 or 6, so we can just use the
-        # tuple directly. But mypy doesn't know that, so we need to ignore the
-        # type error.
-        return BboxLiteral(bbox=coordinates)  # type: ignore[arg-type]
+        # tuple directly.
+        return BboxLiteral(bbox=coordinates)
 
     # Date and Time Definitions
 

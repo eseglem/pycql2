@@ -46,9 +46,9 @@ start: boolean_expression
 is_like_predicate: character_expression _LIKE pattern_expression       -> like
                  | character_expression _NOT _LIKE pattern_expression  -> not_like
 
-pattern_expression: "CASEI"i "(" pattern_expression ")"    -> casei
-                  | "ACCENTI"i "(" pattern_expression ")"  -> accenti
-                  | CHARACTER_LITERAL
+?pattern_expression: "CASEI"i "(" pattern_expression ")"    -> casei_pattern
+                   | "ACCENTI"i "(" pattern_expression ")"  -> accenti_pattern
+                   | CHARACTER_LITERAL
 
 // Between Predicate
 is_between_predicate: numeric_expression _BETWEEN numeric_expression _AND numeric_expression         -> is_between
@@ -205,11 +205,11 @@ _argument: character_clause
          | property_name
          | function
 
-character_expression: character_clause
+?character_expression: character_clause
                      | property_name
                      | function
-?character_clause: "CASEI"i "(" character_expression ")"      -> casei
-                 | "ACCENTI"i "(" character_expression ")"    -> accenti
+?character_clause: "CASEI"i "(" character_expression ")"      -> casei_character
+                 | "ACCENTI"i "(" character_expression ")"    -> accenti_character
                  | CHARACTER_LITERAL
 
 // WKT Definitions

@@ -36,7 +36,7 @@ hypothesis = { version = ">=6.91.0", optional = true }
 black = { version = ">=23.1.0", optional = true }
 ruff = { version = ">=0.0.254", optional = true }
 mypy = { version = ">=1.1.0", optional = true }
-pre-commit = { version = ">=3.1.1", optional = true }
+pre-commit = { version = ">=3.1.1", optional = true, python = ">=3.9" }
 
 [tool.poetry.extras]
 dev = ["black", "ruff", "mypy", "pre-commit"]

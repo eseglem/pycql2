@@ -2,7 +2,16 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import Enum
-from typing import TYPE_CHECKING, List, Literal, MutableSequence, Sequence, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    Literal,
+    MutableSequence,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 from geojson_pydantic.geometries import Geometry, GeometryCollection
 from geojson_pydantic.types import BBox
@@ -10,7 +19,6 @@ from pydantic import (
     BaseModel,
     Field,
     RootModel,
-    Strict,
     StrictBool,
     StrictFloat,
     StrictInt,
@@ -35,15 +43,6 @@ def make_char_literal(string: str) -> str:
 
 def join_list(items: Sequence, sep: str) -> str:
     return sep.join(str(item) for item in items)
-
-
-# It would be nice to do something like `CharacterLiteral(str)`, but that causes
-# other issues. This seems like the best solution for the time being.
-class CharacterLiteral(RootModel):
-    root: Annotated[str, Strict()]
-
-    def __str__(self) -> str:
-        return make_char_literal(self.root)
 
 
 class NotExpression(BaseModel):
@@ -278,33 +277,33 @@ class IntervalInstance(BaseModel):
         return f"INTERVAL({self.interval[0]}, {self.interval[1]})"
 
 
-class _Casei(BaseModel):
+class Casei(BaseModel):
     casei: Union[CharacterExpression, PatternExpression]
 
     def __str__(self) -> str:
         return f"CASEI({self.casei})"
 
 
-class CaseiCharacterExpression(_Casei):
+class CaseiCharacterExpression(Casei):
     casei: CharacterExpression
 
 
-class CaseiPatternExpression(_Casei):
+class CaseiPatternExpression(Casei):
     casei: PatternExpression
 
 
-class _Accenti(BaseModel):
+class Accenti(BaseModel):
     accenti: Union[CharacterExpression, PatternExpression]
 
     def __str__(self) -> str:
         return f"ACCENTI({self.accenti})"
 
 
-class AccentiCharacterExpression(_Accenti):
+class AccentiCharacterExpression(Accenti):
     accenti: CharacterExpression
 
 
-class AccentiPatternExpression(_Accenti):
+class AccentiPatternExpression(Accenti):
     accenti: PatternExpression
 
 
@@ -315,16 +314,25 @@ class GeometryLiteral(RootModel):
         return self.root.wkt
 
 
-CharacterClause = Union[
-    CaseiCharacterExpression,
-    AccentiCharacterExpression,
-    CharacterLiteral,
-]
-CharacterExpression = Union[
-    CharacterClause,
-    PropertyRef,
-    FunctionRef,
-]
+class CharLiteralRootModel(RootModel):
+    root: Any
+
+    def __str__(self) -> str:
+        # If it is already a string, make it a char literal
+        if isinstance(self.root, str):
+            return make_char_literal(self.root)
+        # Otherwise, return the string representation of the root
+        return str(self.root)
+
+
+class CharacterClause(CharLiteralRootModel):
+    root: CharacterClauseItems
+
+
+class PatternExpression(CharLiteralRootModel):
+    root: PatternExpressionItems
+
+
 ComparisonPredicate = Union[
     BinaryComparisonPredicate,
     IsLikePredicate,
@@ -348,8 +356,18 @@ ArithmeticOperandsItems = Union[
     ArithmeticExpression, PropertyRef, FunctionRef, StrictFloatOrInt
 ]
 ArrayExpressionItems = Union[Array, PropertyRef, FunctionRef]
-PatternExpression = Union[
-    CaseiPatternExpression, AccentiPatternExpression, CharacterLiteral
+PatternExpressionItems = Union[
+    CaseiPatternExpression, AccentiPatternExpression, StrictStr
+]
+CharacterClauseItems = Union[
+    CaseiCharacterExpression,
+    AccentiCharacterExpression,
+    StrictStr,
+]
+CharacterExpression = Union[
+    CharacterClause,
+    PropertyRef,
+    FunctionRef,
 ]
 
 # Extra types to match the cql2-text grammar better
@@ -403,6 +421,7 @@ BinaryComparisonPredicate.model_rebuild()
 BooleanExpression.model_rebuild()
 CaseiCharacterExpression.model_rebuild()
 CaseiPatternExpression.model_rebuild()
+CharacterClause.model_rebuild()
 DateInstant.model_rebuild()
 Function.model_rebuild()
 FunctionRef.model_rebuild()
@@ -412,6 +431,7 @@ IsInListPredicate.model_rebuild()
 IsLikePredicate.model_rebuild()
 IsNullPredicate.model_rebuild()
 NotExpression.model_rebuild()
+PatternExpression.model_rebuild()
 PropertyRef.model_rebuild()
 SpatialPredicate.model_rebuild()
 TemporalPredicate.model_rebuild()

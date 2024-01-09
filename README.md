@@ -57,6 +57,8 @@ In addition to this, [HypoFuzz](https://hypofuzz.com/) was used to run coverage 
 
 Support will be added for cql2-json later. There are additional custom strategies which will be necessary.
 
+Note: Python 3.9 is the minimum for testing with Hypothesis and HypoFuzz.
+
 ## CQL2 Spec
 
 Writing this parser has resulted in feedback and contributions to the [ogcapi-features](https://github.com/opengeospatial/ogcapi-features) CQL2 spec:

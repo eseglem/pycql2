@@ -1,0 +1,1 @@
+"owner" = CASEI(ACCENTI('Beyoncé'))

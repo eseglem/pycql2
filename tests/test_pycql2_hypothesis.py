@@ -1,7 +1,8 @@
-from hypothesis import HealthCheck, given, settings
-from hypothesis import strategies as st
-from hypothesis.extra.lark import DrawState, LarkStrategy
-from lark import Token
+from typing import Any, Dict, List, Optional
+
+from hypothesis import HealthCheck, given, settings, strategies as st
+from hypothesis.extra.lark import LarkStrategy
+from lark import Lark, Token
 from lark.grammar import Terminal
 
 from pycql2.cql2_pydantic import join_list
@@ -9,7 +10,11 @@ from pycql2.cql2_transformer import parser, transformer
 
 
 class SpacedLarkStrategy(LarkStrategy):
-    def __init__(self, grammar, start, explicit={}):
+    def __init__(
+        self, grammar: Lark, start: str, explicit: Optional[Dict] = None
+    ) -> None:
+        if explicit is None:
+            explicit = {}
         # Let LarkStrategy figure out most of the strategy
         super().__init__(grammar, start, explicit)
 
@@ -29,7 +34,7 @@ class SpacedLarkStrategy(LarkStrategy):
                     ),
                     min_size=3,
                 )
-                .map(lambda x: x + [x[0]])
+                .map(lambda x: [*x, x[0]])
                 .map(lambda x: join_list([join_list(c, " ") for c in x], ","))
                 .map(lambda x: f"({x})")
             ),
@@ -54,14 +59,14 @@ class SpacedLarkStrategy(LarkStrategy):
         self.terminal_strategies.update(custom_terminals)
         self.nonterminal_strategies.update(custom_strategies)
 
-    def do_draw(self, data):
-        state = DrawState()
+    def do_draw(self, data: Any) -> str:
+        state: List[Any] = []
         start = data.draw(self.start)
         self.draw_symbol(data, start, state)
         # The default strategy doesn't add spaces between tokens so we need to add them
         # here. Technically they shouldn't be needed, but the grammar is a bit ambiguous
         # and it has problems without them.
-        return " ".join(state.result)
+        return " ".join(state)
 
 
 @settings(deadline=None, suppress_health_check=[HealthCheck.too_slow])

@@ -18,7 +18,7 @@ repos:
       - id: pyupgrade
         args: ["--py38-plus", "--keep-runtime-typing"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
+    rev: v0.1.11
     hooks:
       - id: ruff
         args: ["--fix"]
@@ -27,10 +27,6 @@ repos:
     hooks:
       - id: black
         language_version: python
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
     hooks:

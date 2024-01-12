@@ -24,7 +24,8 @@ from geojson_pydantic.types import (
 from lark import Lark, Transformer, v_args
 
 from pycql2.cql2_pydantic import (
-    Accenti,
+    AccentiCharacterExpression,
+    AccentiPatternExpression,
     AndOrExpression,
     ArithmeticExpression,
     ArithmeticOperandsItems,
@@ -38,9 +39,9 @@ from pycql2.cql2_pydantic import (
     BinaryComparisonPredicate,
     BooleanExpression,
     BooleanExpressionItems,
-    Casei,
+    CaseiCharacterExpression,
+    CaseiPatternExpression,
     CharacterExpression,
-    CharacterExpressionItems,
     DateInstant,
     Function,
     FunctionArguments,
@@ -56,7 +57,6 @@ from pycql2.cql2_pydantic import (
     NotExpression,
     NumericExpression,
     PatternExpression,
-    PatternExpressionItems,
     PropertyRef,
     ScalarExpression,
     SpatialOperator,
@@ -89,7 +89,7 @@ def _passthrough(_self: Cql2Transformer, args: Any) -> Any:
 def _make_boolean_expression(arg: BooleanExpressionOrItems) -> BooleanExpression:
     """Ensure arg is a BooleanExpression."""
     if not isinstance(arg, BooleanExpression):
-        arg = BooleanExpression(__root__=arg)
+        arg = BooleanExpression(root=arg)
     return arg
 
 
@@ -183,16 +183,6 @@ class Cql2Transformer(Transformer):
     # Like Predicate
 
     @v_args(inline=True)
-    def pattern_expression(self, arg: PatternExpressionItems) -> PatternExpression:
-        return PatternExpression(__root__=arg)
-
-    @v_args(inline=True)
-    def character_expression(
-        self, arg: CharacterExpressionItems
-    ) -> CharacterExpression:
-        return CharacterExpression(__root__=arg)
-
-    @v_args(inline=True)
     def like(self, e1: CharacterExpression, e2: PatternExpression) -> IsLikePredicate:
         return IsLikePredicate(op="like", args=(e1, e2))
 
@@ -200,9 +190,7 @@ class Cql2Transformer(Transformer):
     def not_like(self, e1: CharacterExpression, e2: PatternExpression) -> NotExpression:
         return NotExpression(
             op="not",
-            args=(
-                BooleanExpression(__root__=IsLikePredicate(op="like", args=(e1, e2))),
-            ),
+            args=(BooleanExpression(root=IsLikePredicate(op="like", args=(e1, e2))),),
         )
 
     # Between Predicate
@@ -221,7 +209,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    __root__=IsBetweenPredicate(op="between", args=(e1, e2, e3))
+                    root=IsBetweenPredicate(op="between", args=(e1, e2, e3))
                 ),
             ),
         )
@@ -244,7 +232,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    __root__=IsInListPredicate(
+                    root=IsInListPredicate(
                         op="in", args=(scalar_expression, list_values[0])
                     )
                 ),
@@ -263,7 +251,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    __root__=IsNullPredicate(op="isNull", args=is_null_operand)
+                    root=IsNullPredicate(op="isNull", args=is_null_operand)
                 ),
             ),
         )
@@ -294,7 +282,7 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def array(self, *array_elements: ArrayElement) -> Array:
-        return Array(__root__=list(array_elements))
+        return Array(root=list(array_elements))
 
     @v_args(inline=True)
     def array_predicate(
@@ -305,7 +293,7 @@ class Cql2Transformer(Transformer):
         if op.endswith("by"):
             op = op[:-2] + "By"
         op = ArrayOperator(op)
-        return ArrayPredicate(op=op, args=ArrayExpression(__root__=(e1, e2)))
+        return ArrayPredicate(op=op, args=ArrayExpression(root=(e1, e2)))
 
     # Arithmetic
 
@@ -385,12 +373,32 @@ class Cql2Transformer(Transformer):
         return PropertyRef(property=property_name.strip('"'))
 
     @v_args(inline=True)
-    def casei(self, character_expression: CharacterExpression) -> Casei:
-        return Casei(casei=character_expression)
+    def casei_pattern(
+        self,
+        expression: PatternExpression,
+    ) -> CaseiPatternExpression:
+        return CaseiPatternExpression(casei=expression)
 
     @v_args(inline=True)
-    def accenti(self, character_expression: CharacterExpression) -> Accenti:
-        return Accenti(accenti=character_expression)
+    def casei_character(
+        self,
+        expression: CharacterExpression,
+    ) -> CaseiCharacterExpression:
+        return CaseiCharacterExpression(casei=expression)
+
+    @v_args(inline=True)
+    def accenti_pattern(
+        self,
+        expression: PatternExpression,
+    ) -> AccentiPatternExpression:
+        return AccentiPatternExpression(accenti=expression)
+
+    @v_args(inline=True)
+    def accenti_character(
+        self,
+        expression: CharacterExpression,
+    ) -> AccentiCharacterExpression:
+        return AccentiCharacterExpression(accenti=expression)
 
     # Spatial Definitions
 
@@ -449,9 +457,8 @@ class Cql2Transformer(Transformer):
     @v_args(inline=True)
     def bbox(self, *coordinates: float) -> BboxLiteral:
         # We know that `coordinates` will always be 4 or 6, so we can just use the
-        # tuple directly. But mypy doesn't know that, so we need to ignore the
-        # type error.
-        return BboxLiteral(bbox=coordinates)  # type: ignore[arg-type]
+        # tuple directly.
+        return BboxLiteral(bbox=coordinates)
 
     # Date and Time Definitions
 

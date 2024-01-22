@@ -5,7 +5,7 @@ from hypothesis.extra.lark import LarkStrategy
 from lark import Lark, Token
 from lark.grammar import Terminal
 
-from pycql2.cql2_pydantic import join_list
+from pycql2.cql2_pydantic import _join_list
 from pycql2.cql2_transformer import parser, transformer
 
 
@@ -35,7 +35,7 @@ class SpacedLarkStrategy(LarkStrategy):
                     min_size=3,
                 )
                 .map(lambda x: [*x, x[0]])
-                .map(lambda x: join_list([join_list(c, " ") for c in x], ","))
+                .map(lambda x: _join_list([_join_list(c, " ") for c in x], ","))
                 .map(lambda x: f"({x})")
             ),
             # The grammar just uses DIGIT throughout but we need to make sure that the

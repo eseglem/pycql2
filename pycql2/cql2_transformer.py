@@ -67,6 +67,7 @@ from pycql2.cql2_pydantic import (
     TemporalPredicate,
     TimestampInstant,
 )
+from pycql2.utils import _clean_char_literal
 
 BooleanExpressionOrItems = Union[BooleanExpression, BooleanExpressionItems]
 Predicate = Union[
@@ -355,8 +356,7 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def CHARACTER_LITERAL(self, characters: str) -> str:
-        # Strip the extra `'` off strings which are unneeded in json.
-        return characters.strip("'")
+        return _clean_char_literal(characters)
 
     argument_list = _passthrough
 
@@ -456,8 +456,8 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def bbox(self, *coordinates: float) -> BboxLiteral:
-        # We know that `coordinates` will always be 4 or 6, so we can just use the
-        # tuple directly.
+        # Based on the grammar, we know there will always be 4 or 6 `coordinates`.
+        # No additional validation is necessary.
         return BboxLiteral(bbox=coordinates)
 
     # Date and Time Definitions

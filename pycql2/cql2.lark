@@ -155,6 +155,7 @@ ARRAY_OPERATOR: "A_EQUALS"i
 
 // Character literal, property name, and function name definitions
 ESCAPED_QUOTE: "''"
+             | "\'"
 CHARACTER_LITERAL: "'" (ALPHA | DIGIT | ESCAPED_QUOTE)* "'"
 
 ALPHA: /[\u0007-\u000D]/

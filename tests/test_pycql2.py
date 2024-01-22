@@ -77,6 +77,7 @@ def test_text_to_json(text_file: str) -> None:
     with open(os.path.join(TEXT_DIR, text_file)) as inf:
         text_data = inf.read()
     model = parser.parse(text_data)
+    output = transformer.transform(model)
 
     # Load the expected json data
     json_file = text_file.replace(".txt", ".json")
@@ -88,7 +89,4 @@ def test_text_to_json(text_file: str) -> None:
     with open(os.path.join(JSON_DIR, json_file)) as inf:
         json_data = json.load(inf)
     expected = BooleanExpression.model_validate(json_data)
-    # Compare the two. We use __root__ because the json data is wrapped
-    # by the BooleanExpression model.
-    output = transformer.transform(model)
     assert output == expected

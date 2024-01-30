@@ -5,9 +5,15 @@
       "property": "owner"
     },
     {
-      "casei": {
-        "accenti": "Beyoncé"
-      }
+      "op": "casei",
+      "args": [
+        {
+          "op": "accenti",
+          "args": [
+            "Beyoncé"
+          ]
+        }
+      ]
     }
   ]
 }

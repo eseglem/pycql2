@@ -268,33 +268,35 @@ class IntervalInstance(BaseModel):
 # using a subclass for each `CharacterExpression` and `PatternExpression`.
 # Runtime typing on Generics has been problematic.
 class Casei(BaseModel):
-    casei: Union[CharacterExpression, PatternExpression]
+    op: Literal["casei"]
+    args: Tuple[Union[CharacterExpression, PatternExpression]]
 
     def __str__(self) -> str:
-        return f"CASEI({self.casei})"
+        return f"CASEI({self.args[0]})"
 
 
 class CaseiCharacterExpression(Casei):
-    casei: CharacterExpression
+    args: Tuple[CharacterExpression]
 
 
 class CaseiPatternExpression(Casei):
-    casei: PatternExpression
+    args: Tuple[PatternExpression]
 
 
 class Accenti(BaseModel):
-    accenti: Union[CharacterExpression, PatternExpression]
+    op: Literal["accenti"]
+    args: Tuple[Union[CharacterExpression, PatternExpression]]
 
     def __str__(self) -> str:
-        return f"ACCENTI({self.accenti})"
+        return f"ACCENTI({self.args[0]})"
 
 
 class AccentiCharacterExpression(Accenti):
-    accenti: CharacterExpression
+    args: Tuple[CharacterExpression]
 
 
 class AccentiPatternExpression(Accenti):
-    accenti: PatternExpression
+    args: Tuple[PatternExpression]
 
 
 class _CharLiteralRootModel(RootModel):
@@ -394,6 +396,7 @@ BooleanExpressionItems = Union[
     SpatialPredicate,
     TemporalPredicate,
     ArrayPredicate,
+    FunctionRef,
     StrictBool,
 ]
 

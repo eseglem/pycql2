@@ -2,12 +2,18 @@
   "op": "=",
   "args": [
     {
-      "accenti": {
-        "property": "owner"
-      }
+      "op": "accenti",
+      "args": [
+        {
+          "property": "owner"
+        }
+      ]
     },
     {
-      "accenti": "Beyoncé"
+      "op": "accenti",
+      "args": [
+        "Beyoncé"
+      ]
     }
   ]
 }

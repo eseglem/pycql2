@@ -11,7 +11,9 @@ start: boolean_expression
 // Splitting NOT into a separate rule does not result in parsing errors, and is more readable.
 ?boolean_factor: boolean_primary
                | _NOT boolean_primary                  -> not_
+// `function` needs to be after `predicate`, otherwise it will match them
 ?boolean_primary: predicate
+                | function
                 | BOOLEAN_LITERAL
                 | "(" boolean_expression ")"
 

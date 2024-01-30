@@ -377,28 +377,28 @@ class Cql2Transformer(Transformer):
         self,
         expression: PatternExpression,
     ) -> CaseiPatternExpression:
-        return CaseiPatternExpression(casei=expression)
+        return CaseiPatternExpression(op="casei", args=(expression,))
 
     @v_args(inline=True)
     def casei_character(
         self,
         expression: CharacterExpression,
     ) -> CaseiCharacterExpression:
-        return CaseiCharacterExpression(casei=expression)
+        return CaseiCharacterExpression(op="casei", args=(expression,))
 
     @v_args(inline=True)
     def accenti_pattern(
         self,
         expression: PatternExpression,
     ) -> AccentiPatternExpression:
-        return AccentiPatternExpression(accenti=expression)
+        return AccentiPatternExpression(op="accenti", args=(expression,))
 
     @v_args(inline=True)
     def accenti_character(
         self,
         expression: CharacterExpression,
     ) -> AccentiCharacterExpression:
-        return AccentiCharacterExpression(accenti=expression)
+        return AccentiCharacterExpression(op="accenti", args=(expression,))
 
     # Spatial Definitions
 

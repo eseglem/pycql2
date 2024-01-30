@@ -2,12 +2,18 @@
   "op": "=",
   "args": [
     {
-      "casei": {
-        "property": "owner"
-      }
+      "op": "casei",
+      "args": [
+        {
+          "property": "owner"
+        }
+      ]
     },
     {
-      "casei": "somebody else"
+      "op": "casei",
+      "args": [
+        "somebody else"
+      ]
     }
   ]
 }

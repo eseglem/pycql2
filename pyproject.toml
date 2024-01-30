@@ -62,7 +62,7 @@ select = [
     "RSE", # flake8-raise
     "RET", # flake8-return
     "SIM", # flake8-simplify
-    # "PTH", # flake8-use-pathlib
+    "PTH", # flake8-use-pathlib
     "TRY", # tryceratops
     "RUF", # Ruff specific rules
 ]
@@ -82,9 +82,6 @@ combine-as-imports = true
 [tool.coverage.run]
 source = ["pycql2"]
 branch = true
-
-[tool.coverage.report]
-exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.mypy]
 python_version = "3.10"

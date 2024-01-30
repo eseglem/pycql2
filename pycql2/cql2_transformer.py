@@ -261,18 +261,18 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def spatial_predicate(
-        self, spatial_operator: str, e1: GeomExpression, e2: GeomExpression
+        self, spatial_function: str, e1: GeomExpression, e2: GeomExpression
     ) -> SpatialPredicate:
-        op = SpatialOperator(spatial_operator.lower())
+        op = SpatialOperator(spatial_function.lower())
         return SpatialPredicate(op=op, args=(e1, e2))
 
     # Temporal Predicate
 
     @v_args(inline=True)
     def temporal_predicate(
-        self, temporal_operator: str, e1: TemporalExpression, e2: TemporalExpression
+        self, temporal_function: str, e1: TemporalExpression, e2: TemporalExpression
     ) -> TemporalPredicate:
-        op = temporal_operator.lower()
+        op = temporal_function.lower()
         # Special case for any operation that ends with `by`
         if op.endswith("by"):
             op = op[:-2] + "By"
@@ -287,9 +287,9 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def array_predicate(
-        self, array_operator: str, e1: ArrayExpressionItems, e2: ArrayExpressionItems
+        self, array_function: str, e1: ArrayExpressionItems, e2: ArrayExpressionItems
     ) -> ArrayPredicate:
-        op = array_operator.lower()
+        op = array_function.lower()
         # Special case for any operation that ends with `by`
         if op.endswith("by"):
             op = op[:-2] + "By"

@@ -1,18 +1,11 @@
 {
   "op": "=",
   "args": [
-    {
-      "property": "owner"
-    },
+    { "property": "owner" },
     {
       "op": "casei",
       "args": [
-        {
-          "op": "accenti",
-          "args": [
-            "Beyoncé"
-          ]
-        }
+        { "op": "accenti", "args": [ "Beyoncé" ] }
       ]
     }
   ]

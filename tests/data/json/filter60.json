@@ -1,9 +1,7 @@
 {
   "op": "=",
   "args": [
-    {
-      "property": "name"
-    },
+    { "property": "name" },
     "King's Landing"
   ]
 }

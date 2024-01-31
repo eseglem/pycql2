@@ -5,7 +5,7 @@
     {
       "op": "%",
       "args": [
-        {"property":"foo"},
+        { "property": "foo" },
         2
       ]
     }

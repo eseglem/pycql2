@@ -1,14 +1,7 @@
 {
   "op": "a_equals",
   "args": [
-    [
-      "a",
-      true,
-      1.0,
-      8
-    ],
-    {
-      "property": "values"
-    }
+    [ "a", true, 1.0, 8 ],
+    { "property": "values" }
   ]
 }

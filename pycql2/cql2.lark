@@ -11,9 +11,8 @@ start: boolean_expression
 // Splitting NOT into a separate rule does not result in parsing errors, and is more readable.
 ?boolean_factor: boolean_primary
                | _NOT boolean_primary                  -> not_
-// `function` needs to be after `predicate`, otherwise it will match them
-?boolean_primary: predicate
-                | function
+?boolean_primary: function
+                | predicate
                 | BOOLEAN_LITERAL
                 | "(" boolean_expression ")"
 
@@ -85,35 +84,35 @@ spatial_predicate: SPATIAL_FUNCTION "(" geom_expression "," geom_expression ")"
 ?geom_expression: spatial_instance
                 | property_name
                 | function
-SPATIAL_FUNCTION: "S_INTERSECTS"i
-                | "S_EQUALS"i
-                | "S_DISJOINT"i
-                | "S_TOUCHES"i
-                | "S_WITHIN"i
-                | "S_OVERLAPS"i
-                | "S_CROSSES"i
-                | "S_CONTAINS"i
+SPATIAL_FUNCTION.2: "S_INTERSECTS"i
+                  | "S_EQUALS"i
+                  | "S_DISJOINT"i
+                  | "S_TOUCHES"i
+                  | "S_WITHIN"i
+                  | "S_OVERLAPS"i
+                  | "S_CROSSES"i
+                  | "S_CONTAINS"i
 
 // Temporal Predicate
 temporal_predicate: TEMPORAL_FUNCTION "(" temporal_expression "," temporal_expression ")"
 ?temporal_expression: temporal_instance
                     | property_name
                     | function
-TEMPORAL_FUNCTION: "T_AFTER"i
-                 | "T_BEFORE"i
-                 | "T_CONTAINS"i
-                 | "T_DISJOINT"i
-                 | "T_DURING"i
-                 | "T_EQUALS"i
-                 | "T_FINISHEDBY"i
-                 | "T_FINISHES"i
-                 | "T_INTERSECTS"i
-                 | "T_MEETS"i
-                 | "T_METBY"i
-                 | "T_OVERLAPPEDBY"i
-                 | "T_OVERLAPS"i
-                 | "T_STARTEDBY"i
-                 | "T_STARTS"i
+TEMPORAL_FUNCTION.2: "T_AFTER"i
+                   | "T_BEFORE"i
+                   | "T_CONTAINS"i
+                   | "T_DISJOINT"i
+                   | "T_DURING"i
+                   | "T_EQUALS"i
+                   | "T_FINISHEDBY"i
+                   | "T_FINISHES"i
+                   | "T_INTERSECTS"i
+                   | "T_MEETS"i
+                   | "T_METBY"i
+                   | "T_OVERLAPPEDBY"i
+                   | "T_OVERLAPS"i
+                   | "T_STARTEDBY"i
+                   | "T_STARTS"i
 
 // Array Predicate
 array_predicate: ARRAY_FUNCTION "(" array_expression "," array_expression ")"
@@ -132,10 +131,10 @@ array: "(" ")"
               | property_name
               | function
 
-ARRAY_FUNCTION: "A_EQUALS"i
-              | "A_CONTAINS"i
-              | "A_CONTAINEDBY"i
-              | "A_OVERLAPS"i
+ARRAY_FUNCTION.2: "A_EQUALS"i
+                | "A_CONTAINS"i
+                | "A_CONTAINEDBY"i
+                | "A_OVERLAPS"i
 
 // Arithmetic definitions
 ?arithmetic_expression: arithmetic_term
@@ -159,6 +158,9 @@ ARRAY_FUNCTION: "A_EQUALS"i
 ESCAPED_QUOTE: "''"
              | "\'"
 CHARACTER_LITERAL: "'" (ALPHA | DIGIT | WHITESPACE | ESCAPED_QUOTE)* "'"
+
+// For detailed notes on character sets see:
+// https://github.com/opengeospatial/ogcapi-features/blob/master/cql2/standard/schema/cql2.bnf
 
 ALPHA: /[\u0007-\u0008]/
      | /[\u0021-\u0026]/
@@ -309,15 +311,15 @@ DATE_TIME: DATE "T" TIME "Z"
 DOTDOT: "'..'"
 
 // General keywords which are used in a few places.
-_OR: "OR"i
-_AND: "AND"i
-_NOT: "NOT"i
+_OR.2: "OR"i
+_AND.2: "AND"i
+_NOT.2: "NOT"i
 
-_LIKE: "LIKE"i
-_BETWEEN: "BETWEEN"i
-_IN: "IN"i
-_IS: "IS"i
-_NULL: "NULL"i
+_LIKE.2: "LIKE"i
+_BETWEEN.2: "BETWEEN"i
+_IN.2: "IN"i
+_IS.2: "IS"i
+_NULL.2: "NULL"i
 
 // Need to increase priority to ensure it is not considered an IDENTIFIER
 BOOLEAN_LITERAL.2: "TRUE"i | "FALSE"i

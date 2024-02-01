@@ -36,11 +36,10 @@ The cql2-text spec was not strictly followed for WKT. Some tweaks were made to i
 - Added 'Linear Ring' for use in Polygons with a minimum of 4 coordinates.
     - This does not enforce the ring being closed, just that it contains enough coordinates to be one.
 - Moved BBOX so it cannot be included in GeometryCollection.
-- Moved GeometryCollection to not allow nesting, until support is added to `geojson-pydantic`.
 
 There are a few things which **may** be issues with the spec but have not been fully addressed yet.
 
-- (Partially addressed) `spatial_literal` includes `geometry_collection` and `bbox`, and `geometry_collection` allows for all `spatial_literal` within it. But `bbox` does not seem to be a part of WKT. And at least within GeoJSON, nested `GeometryCollection` "SHOULD be avoided". This would mean the `cql2-text -> cql2-json` conversion would break where `geojson-pydantic` doesn't accept these cases.
+- `spatial_literal` includes `bbox`, and `geometry_collection` allows for all `spatial_literal` within it. But `bbox` does not seem to be a part of WKT. This would mean the `cql2-text -> cql2-json` conversion would break where `geojson-pydantic` doesn't accept these cases.
 - The spec does not allow for `EMPTY` geometries.
 
 ## Testing

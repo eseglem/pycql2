@@ -1,1 +1,1 @@
-NOT (value > 10) OR (foo = 2)
+(NOT "value" > 10 OR "foo" = 2)

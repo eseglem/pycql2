@@ -177,7 +177,6 @@ class AndOrExpression(BaseModel):
 
 
 class ArithmeticExpression(BaseModel):
-    # cql2-text defines two operators cql2-json does not.
     op: Literal["+", "-", "*", "/", "^", "%", "div"]
     args: Tuple[ArithmeticOperandsItems, ArithmeticOperandsItems]
 

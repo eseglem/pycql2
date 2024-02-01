@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
-from typing import Any, List, Union, cast
+from typing import Any, List, Literal, Union, cast
 
 from geojson_pydantic import (
     GeometryCollection,
@@ -482,9 +482,9 @@ class Cql2Transformer(Transformer):
         )
 
     @v_args(inline=True)
-    def DOTDOT(self, dotdot: str) -> str:
-        # Strip the `'` which aren't used in the json representation
-        return dotdot.strip("'")
+    def DOTDOT(self, _dotdot: Literal["'..'"]) -> str:
+        # The json representation does not include the single quotes.
+        return ".."
 
     @v_args(inline=True)
     def date_instant(self, date_: date) -> DateInstant:

@@ -137,6 +137,8 @@ ARRAY_FUNCTION.2: "A_EQUALS"i
                 | "A_OVERLAPS"i
 
 // Arithmetic definitions
+// This still uses the old definition with left recursion. The newer definiton
+// cannot parse filter57-alt01.txt.
 ?arithmetic_expression: arithmetic_term
                       | arithmetic_expression "+" arithmetic_term  -> plus
                       | arithmetic_expression "-" arithmetic_term  -> minus
@@ -255,20 +257,18 @@ _argument: character_clause
 // - Added support for `Z` in WKT which is not included in CQL2 spec.
 // - Added minimum of 2 points for LineString.
 // - Added linear ring with 4 points minimum for Polygons.
-// - Added a `geometry_instance` and restricted it to not inclue `bbox` or `geometry_collection`.
+// - Added a `geometry_instance` and restricted it to not inclue `bbox`.
 //     - The spec allows for BBOX inside GeometryCollection which does not seem to be valid WKT.
-//     - The spec allows for GeometryCollection within GeometryCollection but GeoJSON discourages it.
-//     - Will move `geometry_collection` back to `geometry_instance` when geojson-pydantic supports it.
 // - The spec does not support `EMPTY` WKT. May add it in the future.
 ?spatial_instance: geometry_instance
-                 | geometry_collection
                  | bbox
 ?geometry_instance: point
-                 | linestring
-                 | polygon
-                 | multi_point
-                 | multi_linestring
-                 | multi_polygon
+                  | linestring
+                  | polygon
+                  | multi_point
+                  | multi_linestring
+                  | multi_polygon
+                  | geometry_collection
 
 point: "POINT"i "Z"i? point_coordinates
 linestring: "LINESTRING"i "Z"i? linestring_coordinates

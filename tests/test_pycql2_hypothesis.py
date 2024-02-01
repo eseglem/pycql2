@@ -11,12 +11,18 @@ from pycql2.cql2_transformer import parser, transformer
 
 class SpacedLarkStrategy(LarkStrategy):
     def __init__(
-        self, grammar: Lark, start: str, explicit: Optional[Dict] = None
+        self,
+        grammar: Lark,
+        start: Optional[str] = None,
+        explicit: Optional[Dict[str, st.SearchStrategy[str]]] = None,
+        alphabet: Optional[st.SearchStrategy[str]] = None,
     ) -> None:
         if explicit is None:
             explicit = {}
+        if alphabet is None:
+            alphabet = st.characters(codec="utf-8")
         # Let LarkStrategy figure out most of the strategy
-        super().__init__(grammar, start, explicit)
+        super().__init__(grammar, start, explicit, alphabet)
 
         # The logic used to draw symbols requires the actual strategies be in "Terminals"
         # so we can create new Terminal strategies that doesn't clash with the existing ones

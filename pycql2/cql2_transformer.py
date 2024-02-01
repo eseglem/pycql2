@@ -14,6 +14,7 @@ from geojson_pydantic import (
 )
 from geojson_pydantic.geometries import Geometry
 from geojson_pydantic.types import (
+    BBox,
     LineStringCoords,
     MultiLineStringCoords,
     MultiPointCoords,
@@ -33,7 +34,7 @@ from pycql2.cql2_pydantic import (
     ArrayElement,
     ArrayExpression,
     ArrayExpressionItems,
-    ArrayOperator,
+    ArrayFunction,
     ArrayPredicate,
     BboxLiteral,
     BinaryComparisonPredicate,
@@ -59,11 +60,11 @@ from pycql2.cql2_pydantic import (
     PatternExpression,
     PropertyRef,
     ScalarExpression,
-    SpatialOperator,
+    SpatialFunction,
     SpatialPredicate,
     StrictFloatOrInt,
     TemporalExpression,
-    TemporalOperator,
+    TemporalFunction,
     TemporalPredicate,
     TimestampInstant,
 )
@@ -263,7 +264,7 @@ class Cql2Transformer(Transformer):
     def spatial_predicate(
         self, spatial_function: str, e1: GeomExpression, e2: GeomExpression
     ) -> SpatialPredicate:
-        op = SpatialOperator(spatial_function.lower())
+        op = cast(SpatialFunction, spatial_function.lower())
         return SpatialPredicate(op=op, args=(e1, e2))
 
     # Temporal Predicate
@@ -276,7 +277,7 @@ class Cql2Transformer(Transformer):
         # Special case for any operation that ends with `by`
         if op.endswith("by"):
             op = op[:-2] + "By"
-        op = TemporalOperator(op)
+        op = cast(TemporalFunction, op)
         return TemporalPredicate(op=op, args=(e1, e2))
 
     # Array Predicate
@@ -293,7 +294,7 @@ class Cql2Transformer(Transformer):
         # Special case for any operation that ends with `by`
         if op.endswith("by"):
             op = op[:-2] + "By"
-        op = ArrayOperator(op)
+        op = cast(ArrayFunction, op)
         return ArrayPredicate(op=op, args=ArrayExpression(root=(e1, e2)))
 
     # Arithmetic
@@ -458,6 +459,7 @@ class Cql2Transformer(Transformer):
     def bbox(self, *coordinates: float) -> BboxLiteral:
         # Based on the grammar, we know there will always be 4 or 6 `coordinates`.
         # No additional validation is necessary.
+        coordinates = cast(BBox, coordinates)
         return BboxLiteral(bbox=coordinates)
 
     # Date and Time Definitions

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from enum import Enum
 from typing import (
     Any,
     List,
@@ -79,45 +78,47 @@ class IsNullPredicate(BaseModel):
         return f"{self.args} IS NULL"
 
 
-class SpatialOperator(str, Enum):
-    s_contains = "s_contains"
-    s_crosses = "s_crosses"
-    s_disjoint = "s_disjoint"
-    s_equals = "s_equals"
-    s_intersects = "s_intersects"
-    s_overlaps = "s_overlaps"
-    s_touches = "s_touches"
-    s_within = "s_within"
+SpatialFunction = Literal[
+    "s_contains",
+    "s_crosses",
+    "s_disjoint",
+    "s_equals",
+    "s_intersects",
+    "s_overlaps",
+    "s_touches",
+    "s_within",
+]
 
 
 class SpatialPredicate(BaseModel):
-    op: SpatialOperator
+    op: SpatialFunction
     args: Tuple[GeomExpression, GeomExpression]
 
     def __str__(self) -> str:
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
 
 
-class TemporalOperator(str, Enum):
-    t_after = "t_after"
-    t_before = "t_before"
-    t_contains = "t_contains"
-    t_disjoint = "t_disjoint"
-    t_during = "t_during"
-    t_equals = "t_equals"
-    t_finishedBy = "t_finishedBy"
-    t_finishes = "t_finishes"
-    t_intersects = "t_intersects"
-    t_meets = "t_meets"
-    t_metBy = "t_metBy"
-    t_overlappedBy = "t_overlappedBy"
-    t_overlaps = "t_overlaps"
-    t_startedBy = "t_startedBy"
-    t_starts = "t_starts"
+TemporalFunction = Literal[
+    "t_after",
+    "t_before",
+    "t_contains",
+    "t_disjoint",
+    "t_during",
+    "t_equals",
+    "t_finishedBy",
+    "t_finishes",
+    "t_intersects",
+    "t_meets",
+    "t_metBy",
+    "t_overlappedBy",
+    "t_overlaps",
+    "t_startedBy",
+    "t_starts",
+]
 
 
 class TemporalPredicate(BaseModel):
-    op: TemporalOperator
+    op: TemporalFunction
     args: Tuple[TemporalExpression, TemporalExpression]
 
     def __str__(self) -> str:
@@ -138,15 +139,16 @@ class ArrayExpression(RootModel):
         return f"({self.root[0]}, {self.root[1]})"
 
 
-class ArrayOperator(str, Enum):
-    a_containedBy = "a_containedBy"
-    a_contains = "a_contains"
-    a_equals = "a_equals"
-    a_overlaps = "a_overlaps"
+ArrayFunction = Literal[
+    "a_containedBy",
+    "a_contains",
+    "a_equals",
+    "a_overlaps",
+]
 
 
 class ArrayPredicate(BaseModel):
-    op: ArrayOperator
+    op: ArrayFunction
     args: ArrayExpression
 
     def __str__(self) -> str:

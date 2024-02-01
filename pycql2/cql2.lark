@@ -11,7 +11,8 @@ start: boolean_expression
 // Splitting NOT into a separate rule does not result in parsing errors, and is more readable.
 ?boolean_factor: boolean_primary
                | _NOT boolean_primary                  -> not_
-?boolean_primary: predicate
+?boolean_primary: function
+                | predicate
                 | BOOLEAN_LITERAL
                 | "(" boolean_expression ")"
 
@@ -79,42 +80,42 @@ is_null_predicate: is_null_operand _IS _NULL        -> is_null
                 | function
 
 // Spatial Predicate
-spatial_predicate: SPATIAL_OPERATOR "(" geom_expression "," geom_expression ")"
+spatial_predicate: SPATIAL_FUNCTION "(" geom_expression "," geom_expression ")"
 ?geom_expression: spatial_instance
                 | property_name
                 | function
-SPATIAL_OPERATOR: "S_INTERSECTS"i
-                | "S_EQUALS"i
-                | "S_DISJOINT"i
-                | "S_TOUCHES"i
-                | "S_WITHIN"i
-                | "S_OVERLAPS"i
-                | "S_CROSSES"i
-                | "S_CONTAINS"i
+SPATIAL_FUNCTION.2: "S_INTERSECTS"i
+                  | "S_EQUALS"i
+                  | "S_DISJOINT"i
+                  | "S_TOUCHES"i
+                  | "S_WITHIN"i
+                  | "S_OVERLAPS"i
+                  | "S_CROSSES"i
+                  | "S_CONTAINS"i
 
 // Temporal Predicate
-temporal_predicate: TEMPORAL_OPERATOR "(" temporal_expression "," temporal_expression ")"
+temporal_predicate: TEMPORAL_FUNCTION "(" temporal_expression "," temporal_expression ")"
 ?temporal_expression: temporal_instance
                     | property_name
                     | function
-TEMPORAL_OPERATOR: "T_AFTER"i
-                 | "T_BEFORE"i
-                 | "T_CONTAINS"i
-                 | "T_DISJOINT"i
-                 | "T_DURING"i
-                 | "T_EQUALS"i
-                 | "T_FINISHEDBY"i
-                 | "T_FINISHES"i
-                 | "T_INTERSECTS"i
-                 | "T_MEETS"i
-                 | "T_METBY"i
-                 | "T_OVERLAPPEDBY"i
-                 | "T_OVERLAPS"i
-                 | "T_STARTEDBY"i
-                 | "T_STARTS"i
+TEMPORAL_FUNCTION.2: "T_AFTER"i
+                   | "T_BEFORE"i
+                   | "T_CONTAINS"i
+                   | "T_DISJOINT"i
+                   | "T_DURING"i
+                   | "T_EQUALS"i
+                   | "T_FINISHEDBY"i
+                   | "T_FINISHES"i
+                   | "T_INTERSECTS"i
+                   | "T_MEETS"i
+                   | "T_METBY"i
+                   | "T_OVERLAPPEDBY"i
+                   | "T_OVERLAPS"i
+                   | "T_STARTEDBY"i
+                   | "T_STARTS"i
 
 // Array Predicate
-array_predicate: ARRAY_OPERATOR "(" array_expression "," array_expression ")"
+array_predicate: ARRAY_FUNCTION "(" array_expression "," array_expression ")"
 ?array_expression: array
                  | property_name
                  | function
@@ -130,12 +131,14 @@ array: "(" ")"
               | property_name
               | function
 
-ARRAY_OPERATOR: "A_EQUALS"i
-              | "A_CONTAINS"i
-              | "A_CONTAINEDBY"i
-              | "A_OVERLAPS"i
+ARRAY_FUNCTION.2: "A_EQUALS"i
+                | "A_CONTAINS"i
+                | "A_CONTAINEDBY"i
+                | "A_OVERLAPS"i
 
 // Arithmetic definitions
+// This still uses the old definition with left recursion. The newer definiton
+// cannot parse filter57-alt01.txt.
 ?arithmetic_expression: arithmetic_term
                       | arithmetic_expression "+" arithmetic_term  -> plus
                       | arithmetic_expression "-" arithmetic_term  -> minus
@@ -155,14 +158,50 @@ ARRAY_OPERATOR: "A_EQUALS"i
 
 // Character literal, property name, and function name definitions
 ESCAPED_QUOTE: "''"
-CHARACTER_LITERAL: "'" (ALPHA | DIGIT | ESCAPED_QUOTE)* "'"
+             | "\'"
+CHARACTER_LITERAL: "'" (ALPHA | DIGIT | WHITESPACE | ESCAPED_QUOTE)* "'"
 
-ALPHA: /[\u0007-\u000D]/
-     | /[\u0020-\u0026]/
+// For detailed notes on character sets see:
+// https://github.com/opengeospatial/ogcapi-features/blob/master/cql2/standard/schema/cql2.bnf
+
+ALPHA: /[\u0007-\u0008]/
+     | /[\u0021-\u0026]/
      | /[\u0028-\u002F]/
-     | /[\u003A-\uD7FF]/
-     | /[\uE000-\uFFFD]/
-     | /[\U00010000-\U0010FFFF]/
+     | /[\u003A-\u0084]/
+     | /[\u0086-\u009F]/
+     | /[\u00A1-\u167F]/
+     | /[\u1681-\u1FFF]/
+     | /[\u200B-\u2027]/
+     | /[\u202A-\u202E]/
+     | /[\u2030-\u205E]/
+     | /[\u2060-\u2FFF]/
+     | /[\u3001-\uD7FF]/
+
+WHITESPACE: /\u0009/
+          | /\u000A/
+          | /\u000B/
+          | /\u000C/
+          | /\u000D/
+          | /\u0020/
+          | /\u0085/
+          | /\u00A0/
+          | /\u1680/
+          | /\u2000/
+          | /\u2001/
+          | /\u2002/
+          | /\u2003/
+          | /\u2004/
+          | /\u2005/
+          | /\u2006/
+          | /\u2007/
+          | /\u2008/
+          | /\u2009/
+          | /\u200A/
+          | /\u2028/
+          | /\u2029/
+          | /\u202F/
+          | /\u205F/
+          | /\u3000/
 
 // Identifier
 IDENTIFIER: IDENTIFIER_START IDENTIFIER_PART*
@@ -171,10 +210,10 @@ IDENTIFIER_PART: IDENTIFIER_START
                | DIGIT
                | /[\u0300-\u036F]/
                | /[\u203F-\u2040]/
-IDENTIFIER_START: ":"
-                | "_"
-                | UCASE_LETTER
-                | LCASE_LETTER
+IDENTIFIER_START: /\u003A/
+                | /\u005F/
+                | /[\u0041-\u005A]/
+                | /[\u0061-\u007A]/
                 | /[\u00C0-\u00D6]/
                 | /[\u00D8-\u00F6]/
                 | /[\u00F8-\u02FF]/
@@ -186,7 +225,7 @@ IDENTIFIER_START: ":"
                 | /[\u3001-\uD7FF]/
                 | /[\uF900-\uFDCF]/
                 | /[\uFDF0-\uFFFD]/
-                | /[\U00010000-\U0010FFFF]/
+                | /[\U00010000-\U000EFFFF]/
 
 // Property Name
 property_name: IDENTIFIER
@@ -218,20 +257,18 @@ _argument: character_clause
 // - Added support for `Z` in WKT which is not included in CQL2 spec.
 // - Added minimum of 2 points for LineString.
 // - Added linear ring with 4 points minimum for Polygons.
-// - Added a `geometry_instance` and restricted it to not inclue `bbox` or `geometry_collection`.
+// - Added a `geometry_instance` and restricted it to not inclue `bbox`.
 //     - The spec allows for BBOX inside GeometryCollection which does not seem to be valid WKT.
-//     - The spec allows for GeometryCollection within GeometryCollection but GeoJSON discourages it.
-//     - Will move `geometry_collection` back to `geometry_instance` when geojson-pydantic supports it.
 // - The spec does not support `EMPTY` WKT. May add it in the future.
 ?spatial_instance: geometry_instance
-                 | geometry_collection
                  | bbox
 ?geometry_instance: point
-                 | linestring
-                 | polygon
-                 | multi_point
-                 | multi_linestring
-                 | multi_polygon
+                  | linestring
+                  | polygon
+                  | multi_point
+                  | multi_linestring
+                  | multi_polygon
+                  | geometry_collection
 
 point: "POINT"i "Z"i? point_coordinates
 linestring: "LINESTRING"i "Z"i? linestring_coordinates
@@ -274,24 +311,22 @@ DATE_TIME: DATE "T" TIME "Z"
 DOTDOT: "'..'"
 
 // General keywords which are used in a few places.
-_OR: "OR"i
-_AND: "AND"i
-_NOT: "NOT"i
+_OR.2: "OR"i
+_AND.2: "AND"i
+_NOT.2: "NOT"i
 
-_LIKE: "LIKE"i
-_BETWEEN: "BETWEEN"i
-_IN: "IN"i
-_IS: "IS"i
-_NULL: "NULL"i
+_LIKE.2: "LIKE"i
+_BETWEEN.2: "BETWEEN"i
+_IN.2: "IN"i
+_IS.2: "IS"i
+_NULL.2: "NULL"i
 
 // Need to increase priority to ensure it is not considered an IDENTIFIER
 BOOLEAN_LITERAL.2: "TRUE"i | "FALSE"i
 
-// Imports from common instead od re-defining
+// Import from common instead of re-defining
 %import common.DIGIT
 %import common.SIGNED_NUMBER
-%import common.LCASE_LETTER
-%import common.UCASE_LETTER
 
 // Ignore White Space
 %import common.WS

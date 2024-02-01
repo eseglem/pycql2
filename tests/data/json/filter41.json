@@ -6,9 +6,7 @@
       "function": {
         "name": "Bar",
         "args": [
-          {
-            "property": "geometry"
-          },
+          { "property": "geometry" },
           100,
           "a",
           "b",

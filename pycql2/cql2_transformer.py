@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
-from typing import Any, List, Union, cast
+from typing import Any, List, Literal, Union, cast
 
 from geojson_pydantic import (
     GeometryCollection,
@@ -14,6 +14,7 @@ from geojson_pydantic import (
 )
 from geojson_pydantic.geometries import Geometry
 from geojson_pydantic.types import (
+    BBox,
     LineStringCoords,
     MultiLineStringCoords,
     MultiPointCoords,
@@ -33,7 +34,7 @@ from pycql2.cql2_pydantic import (
     ArrayElement,
     ArrayExpression,
     ArrayExpressionItems,
-    ArrayOperator,
+    ArrayFunction,
     ArrayPredicate,
     BboxLiteral,
     BinaryComparisonPredicate,
@@ -59,14 +60,15 @@ from pycql2.cql2_pydantic import (
     PatternExpression,
     PropertyRef,
     ScalarExpression,
-    SpatialOperator,
+    SpatialFunction,
     SpatialPredicate,
     StrictFloatOrInt,
     TemporalExpression,
-    TemporalOperator,
+    TemporalFunction,
     TemporalPredicate,
     TimestampInstant,
 )
+from pycql2.utils import _clean_char_literal
 
 BooleanExpressionOrItems = Union[BooleanExpression, BooleanExpressionItems]
 Predicate = Union[
@@ -260,22 +262,22 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def spatial_predicate(
-        self, spatial_operator: str, e1: GeomExpression, e2: GeomExpression
+        self, spatial_function: str, e1: GeomExpression, e2: GeomExpression
     ) -> SpatialPredicate:
-        op = SpatialOperator(spatial_operator.lower())
+        op = cast(SpatialFunction, spatial_function.lower())
         return SpatialPredicate(op=op, args=(e1, e2))
 
     # Temporal Predicate
 
     @v_args(inline=True)
     def temporal_predicate(
-        self, temporal_operator: str, e1: TemporalExpression, e2: TemporalExpression
+        self, temporal_function: str, e1: TemporalExpression, e2: TemporalExpression
     ) -> TemporalPredicate:
-        op = temporal_operator.lower()
+        op = temporal_function.lower()
         # Special case for any operation that ends with `by`
         if op.endswith("by"):
             op = op[:-2] + "By"
-        op = TemporalOperator(op)
+        op = cast(TemporalFunction, op)
         return TemporalPredicate(op=op, args=(e1, e2))
 
     # Array Predicate
@@ -286,13 +288,13 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def array_predicate(
-        self, array_operator: str, e1: ArrayExpressionItems, e2: ArrayExpressionItems
+        self, array_function: str, e1: ArrayExpressionItems, e2: ArrayExpressionItems
     ) -> ArrayPredicate:
-        op = array_operator.lower()
+        op = array_function.lower()
         # Special case for any operation that ends with `by`
         if op.endswith("by"):
             op = op[:-2] + "By"
-        op = ArrayOperator(op)
+        op = cast(ArrayFunction, op)
         return ArrayPredicate(op=op, args=ArrayExpression(root=(e1, e2)))
 
     # Arithmetic
@@ -355,8 +357,7 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def CHARACTER_LITERAL(self, characters: str) -> str:
-        # Strip the extra `'` off strings which are unneeded in json.
-        return characters.strip("'")
+        return _clean_char_literal(characters)
 
     argument_list = _passthrough
 
@@ -377,28 +378,28 @@ class Cql2Transformer(Transformer):
         self,
         expression: PatternExpression,
     ) -> CaseiPatternExpression:
-        return CaseiPatternExpression(casei=expression)
+        return CaseiPatternExpression(op="casei", args=(expression,))
 
     @v_args(inline=True)
     def casei_character(
         self,
         expression: CharacterExpression,
     ) -> CaseiCharacterExpression:
-        return CaseiCharacterExpression(casei=expression)
+        return CaseiCharacterExpression(op="casei", args=(expression,))
 
     @v_args(inline=True)
     def accenti_pattern(
         self,
         expression: PatternExpression,
     ) -> AccentiPatternExpression:
-        return AccentiPatternExpression(accenti=expression)
+        return AccentiPatternExpression(op="accenti", args=(expression,))
 
     @v_args(inline=True)
     def accenti_character(
         self,
         expression: CharacterExpression,
     ) -> AccentiCharacterExpression:
-        return AccentiCharacterExpression(accenti=expression)
+        return AccentiCharacterExpression(op="accenti", args=(expression,))
 
     # Spatial Definitions
 
@@ -456,8 +457,9 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def bbox(self, *coordinates: float) -> BboxLiteral:
-        # We know that `coordinates` will always be 4 or 6, so we can just use the
-        # tuple directly.
+        # Based on the grammar, we know there will always be 4 or 6 `coordinates`.
+        # No additional validation is necessary.
+        coordinates = cast(BBox, coordinates)
         return BboxLiteral(bbox=coordinates)
 
     # Date and Time Definitions
@@ -482,9 +484,9 @@ class Cql2Transformer(Transformer):
         )
 
     @v_args(inline=True)
-    def DOTDOT(self, dotdot: str) -> str:
-        # Strip the `'` which aren't used in the json representation
-        return dotdot.strip("'")
+    def DOTDOT(self, _dotdot: Literal["'..'"]) -> str:
+        # The json representation does not include the single quotes.
+        return ".."
 
     @v_args(inline=True)
     def date_instant(self, date_: date) -> DateInstant:

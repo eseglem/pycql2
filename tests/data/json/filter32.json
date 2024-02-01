@@ -1,9 +1,7 @@
 {
   "op": "t_finishes",
   "args": [
-    {
-      "property": "coverage_dates"
-    },
+    { "property": "coverage_dates" },
     {
       "interval": [
         "1991-10-07",

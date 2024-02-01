@@ -4,9 +4,7 @@
     {
       "op": "like",
       "args": [
-        {
-          "property": "name"
-        },
+        { "property": "name" },
         "foo%"
       ]
     }

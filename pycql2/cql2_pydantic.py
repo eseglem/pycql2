@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from enum import Enum
 from typing import (
-    TYPE_CHECKING,
     Any,
     List,
     Literal,
     MutableSequence,
-    Sequence,
     Tuple,
     Union,
 )
@@ -26,23 +23,11 @@ from pydantic import (
 )
 from typing_extensions import Annotated
 
-# The use of `Strict*` is necessary in a few places because pydantic will convert
-# booleans to numbers and vice versa. As well as various types to strings. This
-# should hopefully be fixed by Pydantic v2.
+from pycql2.utils import _join_list, _make_char_literal
 
 # Since we are using strict, we need to use a union to allow for ints and floats
 # in places we want to have numbers.
 StrictFloatOrInt = Union[StrictFloat, StrictInt]
-
-
-def make_char_literal(string: str) -> str:
-    # Escape any single quotes with an extra one.
-    # Monitor https://github.com/opengeospatial/ogcapi-features/issues/717
-    return "'" + string.replace("'", "''") + "'"
-
-
-def join_list(items: Sequence, sep: str) -> str:
-    return sep.join(str(item) for item in items)
 
 
 class NotExpression(BaseModel):
@@ -82,7 +67,7 @@ class IsInListPredicate(BaseModel):
     args: Tuple[ScalarExpression, List[ScalarExpression]]
 
     def __str__(self) -> str:
-        return f"{self.args[0]} IN ({join_list(self.args[1], ', ')})"
+        return f"{self.args[0]} IN ({_join_list(self.args[1], ', ')})"
 
 
 class IsNullPredicate(BaseModel):
@@ -93,45 +78,47 @@ class IsNullPredicate(BaseModel):
         return f"{self.args} IS NULL"
 
 
-class SpatialOperator(str, Enum):
-    s_contains = "s_contains"
-    s_crosses = "s_crosses"
-    s_disjoint = "s_disjoint"
-    s_equals = "s_equals"
-    s_intersects = "s_intersects"
-    s_overlaps = "s_overlaps"
-    s_touches = "s_touches"
-    s_within = "s_within"
+SpatialFunction = Literal[
+    "s_contains",
+    "s_crosses",
+    "s_disjoint",
+    "s_equals",
+    "s_intersects",
+    "s_overlaps",
+    "s_touches",
+    "s_within",
+]
 
 
 class SpatialPredicate(BaseModel):
-    op: SpatialOperator
+    op: SpatialFunction
     args: Tuple[GeomExpression, GeomExpression]
 
     def __str__(self) -> str:
         return f"{self.op.upper()}({self.args[0]}, {self.args[1]})"
 
 
-class TemporalOperator(str, Enum):
-    t_after = "t_after"
-    t_before = "t_before"
-    t_contains = "t_contains"
-    t_disjoint = "t_disjoint"
-    t_during = "t_during"
-    t_equals = "t_equals"
-    t_finishedBy = "t_finishedBy"
-    t_finishes = "t_finishes"
-    t_intersects = "t_intersects"
-    t_meets = "t_meets"
-    t_metBy = "t_metBy"
-    t_overlappedBy = "t_overlappedBy"
-    t_overlaps = "t_overlaps"
-    t_startedBy = "t_startedBy"
-    t_starts = "t_starts"
+TemporalFunction = Literal[
+    "t_after",
+    "t_before",
+    "t_contains",
+    "t_disjoint",
+    "t_during",
+    "t_equals",
+    "t_finishedBy",
+    "t_finishes",
+    "t_intersects",
+    "t_meets",
+    "t_metBy",
+    "t_overlappedBy",
+    "t_overlaps",
+    "t_startedBy",
+    "t_starts",
+]
 
 
 class TemporalPredicate(BaseModel):
-    op: TemporalOperator
+    op: TemporalFunction
     args: Tuple[TemporalExpression, TemporalExpression]
 
     def __str__(self) -> str:
@@ -142,7 +129,7 @@ class Array(RootModel):
     root: MutableSequence[ArrayElement]
 
     def __str__(self) -> str:
-        return f"({join_list(self.root, ', ')})"
+        return f"({_join_list(self.root, ', ')})"
 
 
 class ArrayExpression(RootModel):
@@ -152,15 +139,16 @@ class ArrayExpression(RootModel):
         return f"({self.root[0]}, {self.root[1]})"
 
 
-class ArrayOperator(str, Enum):
-    a_containedBy = "a_containedBy"
-    a_contains = "a_contains"
-    a_equals = "a_equals"
-    a_overlaps = "a_overlaps"
+ArrayFunction = Literal[
+    "a_containedBy",
+    "a_contains",
+    "a_equals",
+    "a_overlaps",
+]
 
 
 class ArrayPredicate(BaseModel):
-    op: ArrayOperator
+    op: ArrayFunction
     args: ArrayExpression
 
     def __str__(self) -> str:
@@ -178,13 +166,7 @@ class BooleanExpression(RootModel):
         return str(self.root)
 
 
-# Type checking does not like `conlist`, so use a conditional here to avoid the error.
-# Due to the recursive nature of the grammar we cannot use `Field` here because it
-# does not properly enforce min / max items when nested. May be fixed by pydantic2.
-if TYPE_CHECKING:
-    BooleanExpressionList = List[BooleanExpression]
-else:
-    BooleanExpressionList = Annotated[List[BooleanExpression], Field(min_length=2)]
+BooleanExpressionList = Annotated[List[BooleanExpression], Field(min_length=2)]
 
 
 class AndOrExpression(BaseModel):
@@ -193,11 +175,10 @@ class AndOrExpression(BaseModel):
 
     def __str__(self) -> str:
         # May result in excessive parens, but guarantees correctness.
-        return f"({join_list(self.args, f' {self.op.upper()} ')})"
+        return f"({_join_list(self.args, f' {self.op.upper()} ')})"
 
 
 class ArithmeticExpression(BaseModel):
-    # cql2-text defines two operators cql2-json does not.
     op: Literal["+", "-", "*", "/", "^", "%", "div"]
     args: Tuple[ArithmeticOperandsItems, ArithmeticOperandsItems]
 
@@ -212,7 +193,7 @@ class Function(BaseModel):
 
     def __str__(self) -> str:
         # If self.args, comma join them. Otherwise, empty string. Inside parens.
-        return self.name + "(" + (join_list(self.args, ", ") if self.args else "") + ")"
+        return f"{self.name}({_join_list(self.args, ', ') if self.args else ''})"
 
 
 class FunctionRef(BaseModel):
@@ -226,7 +207,7 @@ class PropertyRef(BaseModel):
     property: StrictStr
 
     def __str__(self) -> str:
-        # May not need to be quoted, but it can be, so its safer and easier
+        # The safest thing to do is always quote it.
         return f'"{self.property}"'
 
 
@@ -241,7 +222,7 @@ class TimestampInstant(BaseModel):
     timestamp: datetime
 
     def __str__(self) -> str:
-        # format it as iso with `Z` at the end. Note this will always include the
+        # Use ISO format with `Z` at the end. Note: this will always include the
         # microseconds, even if they are 0.
         return f"TIMESTAMP('{self.timestamp.strftime('%Y-%m-%dT%H:%M:%S.%fZ')}')"
 
@@ -251,6 +232,13 @@ class BboxLiteral(BaseModel):
 
     def __str__(self) -> str:
         return f"BBOX{self.bbox}"
+
+
+class GeometryLiteral(RootModel):
+    root: Union[Geometry, GeometryCollection]
+
+    def __str__(self) -> str:
+        return self.root.wkt
 
 
 class IntervalArrayItems(RootModel):
@@ -277,59 +265,62 @@ class IntervalInstance(BaseModel):
         return f"INTERVAL({self.interval[0]}, {self.interval[1]})"
 
 
+# The easiest way to handle typing for `Casei` and `Accenti`, so far, has been
+# using a subclass for each `CharacterExpression` and `PatternExpression`.
+# Runtime typing on Generics has been problematic.
 class Casei(BaseModel):
-    casei: Union[CharacterExpression, PatternExpression]
+    op: Literal["casei"]
+    args: Tuple[Union[CharacterExpression, PatternExpression]]
 
     def __str__(self) -> str:
-        return f"CASEI({self.casei})"
+        return f"CASEI({self.args[0]})"
 
 
 class CaseiCharacterExpression(Casei):
-    casei: CharacterExpression
+    args: Tuple[CharacterExpression]
 
 
 class CaseiPatternExpression(Casei):
-    casei: PatternExpression
+    args: Tuple[PatternExpression]
 
 
 class Accenti(BaseModel):
-    accenti: Union[CharacterExpression, PatternExpression]
+    op: Literal["accenti"]
+    args: Tuple[Union[CharacterExpression, PatternExpression]]
 
     def __str__(self) -> str:
-        return f"ACCENTI({self.accenti})"
+        return f"ACCENTI({self.args[0]})"
 
 
 class AccentiCharacterExpression(Accenti):
-    accenti: CharacterExpression
+    args: Tuple[CharacterExpression]
 
 
 class AccentiPatternExpression(Accenti):
-    accenti: PatternExpression
+    args: Tuple[PatternExpression]
 
 
-class GeometryLiteral(RootModel):
-    root: Union[Geometry, GeometryCollection]
+class _CharLiteralRootModel(RootModel):
+    """Root Model used for anything which can contain a Character Literal.
 
-    def __str__(self) -> str:
-        return self.root.wkt
+    It will apply the quotes required while allowing it to stay a `str`.
+    """
 
-
-class CharLiteralRootModel(RootModel):
     root: Any
 
     def __str__(self) -> str:
-        # If it is already a string, make it a char literal
+        # If root is a string, quote it to make it a Character Literal.
         if isinstance(self.root, str):
-            return make_char_literal(self.root)
-        # Otherwise, return the string representation of the root
+            return _make_char_literal(self.root)
+        # Otherwise, return the string representation of the root.
         return str(self.root)
 
 
-class CharacterClause(CharLiteralRootModel):
+class CharacterClause(_CharLiteralRootModel):
     root: CharacterClauseItems
 
 
-class PatternExpression(CharLiteralRootModel):
+class PatternExpression(_CharLiteralRootModel):
     root: PatternExpressionItems
 
 
@@ -370,7 +361,7 @@ CharacterExpression = Union[
     FunctionRef,
 ]
 
-# Extra types to match the cql2-text grammar better
+# Extra types to match the cql2-text grammar better.
 IsNullOperand = Union[
     CharacterClause,
     NumericExpression,
@@ -406,6 +397,7 @@ BooleanExpressionItems = Union[
     SpatialPredicate,
     TemporalPredicate,
     ArrayPredicate,
+    FunctionRef,
     StrictBool,
 ]
 

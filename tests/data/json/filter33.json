@@ -1,9 +1,7 @@
 {
   "op": "t_intersects",
   "args": [
-    {
-      "property": "coverage_date"
-    },
+    { "property": "coverage_date" },
     {
       "interval": [
         "1991-10-07T08:21:06.393262Z",

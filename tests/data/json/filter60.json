@@ -1,7 +1,7 @@
 {
-  "op": "like",
+  "op": "=",
   "args": [
     { "property": "name" },
-    "foo%"
+    "King's Landing"
   ]
 }

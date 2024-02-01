@@ -1,23 +1,23 @@
 {
-  "op": "and",
+  "op": "or",
   "args": [
     {
       "op": "not",
       "args": [
         {
-          "op": "like",
+          "op": ">",
           "args": [
-            { "property": "name" },
-            "foo%"
+            { "property": "value" },
+            10
           ]
         }
       ]
     },
     {
-      "op": ">",
+      "op": "=",
       "args": [
-        { "property": "value" },
-        10
+        { "property": "foo" },
+        2
       ]
     }
   ]

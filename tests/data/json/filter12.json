@@ -4,14 +4,8 @@
     {
       "op": "in",
       "args": [
-        {
-          "property": "value"
-        },
-        [
-          "a",
-          "b",
-          "c"
-        ]
+        { "property": "value" },
+        [ "a", "b", "c" ]
       ]
     }
   ]

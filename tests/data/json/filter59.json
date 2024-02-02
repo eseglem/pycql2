@@ -4,9 +4,7 @@
     { "property": "owner" },
     {
       "op": "casei",
-      "args": [
-        { "op": "accenti", "args": [ "Beyoncé" ] }
-      ]
+      "args": [{ "op": "accenti", "args": ["Beyoncé"] }]
     }
   ]
 }

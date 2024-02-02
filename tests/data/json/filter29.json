@@ -2,11 +2,8 @@
   "op": "t_during",
   "args": [
     {
-      "interval": [
-        { "property": "created_at" },
-        { "property": "updated_at" }
-      ]
+      "interval": [{ "property": "created_at" }, { "property": "updated_at" }]
     },
-    { "interval": [ "2005-01-10", "2010-02-10" ] }
+    { "interval": ["2005-01-10", "2010-02-10"] }
   ]
 }

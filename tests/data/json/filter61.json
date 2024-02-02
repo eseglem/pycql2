@@ -3,22 +3,8 @@
   "args": [
     {
       "op": "not",
-      "args": [
-        {
-          "op": ">",
-          "args": [
-            { "property": "value" },
-            10
-          ]
-        }
-      ]
+      "args": [{ "op": ">", "args": [{ "property": "value" }, 10] }]
     },
-    {
-      "op": "=",
-      "args": [
-        { "property": "foo" },
-        2
-      ]
-    }
+    { "op": "=", "args": [{ "property": "foo" }, 2] }
   ]
 }

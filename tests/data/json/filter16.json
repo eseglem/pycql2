@@ -3,15 +3,11 @@
   "args": [
     {
       "op": "isNull",
-      "args": [ { "property": "value" } ]
+      "args": [{ "property": "value" }]
     },
     {
       "op": "between",
-      "args": [
-        { "property": "value" },
-        10,
-        20
-      ]
+      "args": [{ "property": "value" }, 10, 20]
     }
   ]
 }

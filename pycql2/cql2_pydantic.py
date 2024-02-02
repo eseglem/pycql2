@@ -72,10 +72,10 @@ class IsInListPredicate(BaseModel):
 
 class IsNullPredicate(BaseModel):
     op: Literal["isNull"]
-    args: IsNullOperand
+    args: Tuple[IsNullOperand]
 
     def __str__(self) -> str:
-        return f"{self.args} IS NULL"
+        return f"{self.args[0]} IS NULL"
 
 
 SpatialFunction = Literal[

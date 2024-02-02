@@ -245,7 +245,7 @@ class Cql2Transformer(Transformer):
 
     @v_args(inline=True)
     def is_null(self, is_null_operand: IsNullOperand) -> IsNullPredicate:
-        return IsNullPredicate(op="isNull", args=is_null_operand)
+        return IsNullPredicate(op="isNull", args=(is_null_operand,))
 
     @v_args(inline=True)
     def is_not_null(self, is_null_operand: IsNullOperand) -> NotExpression:
@@ -253,7 +253,7 @@ class Cql2Transformer(Transformer):
             op="not",
             args=(
                 BooleanExpression(
-                    root=IsNullPredicate(op="isNull", args=is_null_operand)
+                    root=IsNullPredicate(op="isNull", args=(is_null_operand,))
                 ),
             ),
         )

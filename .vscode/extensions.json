@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "DavidAnson.vscode-markdownlint",
+    "EditorConfig.EditorConfig",
+    "esbenp.prettier-vscode",
+    "ms-python.debugpy",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "tamasfe.even-better-toml"
+  ]
+}

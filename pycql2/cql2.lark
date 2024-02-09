@@ -286,7 +286,10 @@ linestring_coordinates: "(" coordinate ("," coordinate)+ ")"
 // BNF does not include linear ring, but you cannot have a polygon without 4 points.
 linear_ring_coordinates: "(" coordinate "," coordinate "," coordinate ("," coordinate)+ ")"
 polygon_coordinates:  "(" linear_ring_coordinates ("," linear_ring_coordinates)* ")"
+// To maintain compatibility with other tools we will also accept `coordinate` here, though
+// the spec does not allow for it.
 multi_point_coordinates: "(" point_coordinates ("," point_coordinates)* ")"
+                       | "(" coordinate ("," coordinate)* ")"
 multi_linestring_coordinates: "(" linestring_coordinates ("," linestring_coordinates)* ")"
 multi_polygon_coordinates: "(" polygon_coordinates ("," polygon_coordinates)* ")"
 

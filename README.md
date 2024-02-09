@@ -36,6 +36,10 @@ The cql2-text spec was not strictly followed for WKT. Some tweaks were made to i
 - Added 'Linear Ring' for use in Polygons with a minimum of 4 coordinates.
     - This does not enforce the ring being closed, just that it contains enough coordinates to be one.
 - Moved BBOX so it cannot be included in GeometryCollection.
+- Added alternative MultiPoint syntax to maintain compatibility with other spatial tools and libraries.
+    - Allows reading of `MUTLIPOINT(0 0, 1 1)` without the inner parenthesis.
+    - This may be removed in the future if it is no longer necessary for compatibility. Removal will be considered a breaking change and be versioned as such.
+    - Note: Output will always include the inner parenthesis (via `geojson-pydantic`).
 
 There are a few things which **may** be issues with the spec but have not been fully addressed yet.
 

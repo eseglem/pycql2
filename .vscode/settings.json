@@ -14,8 +14,7 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "markdownlint.config": {
-    "default": true,
-    "MD007": {
+    "ul-indent": {
       "indent": 4
     }
   }

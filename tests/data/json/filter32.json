@@ -1,14 +1,9 @@
 {
   "op": "t_finishes",
   "args": [
+    { "property": "coverage_dates" },
     {
-      "property": "coverage_dates"
-    },
-    {
-      "interval": [
-        "1991-10-07",
-        "2010-02-10T05:29:20.073225Z"
-      ]
+      "interval": ["1991-10-07", "2010-02-10T05:29:20.073225Z"]
     }
   ]
 }

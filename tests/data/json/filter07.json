@@ -1,9 +1,4 @@
 {
   "op": "like",
-  "args": [
-    {
-      "property": "name"
-    },
-    "foo%"
-  ]
+  "args": [{ "property": "name" }, "foo%"]
 }

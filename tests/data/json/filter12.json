@@ -3,16 +3,7 @@
   "args": [
     {
       "op": "in",
-      "args": [
-        {
-          "property": "value"
-        },
-        [
-          "a",
-          "b",
-          "c"
-        ]
-      ]
+      "args": [{ "property": "value" }, ["a", "b", "c"]]
     }
   ]
 }

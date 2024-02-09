@@ -6,23 +6,13 @@
       "args": [
         {
           "op": "like",
-          "args": [
-            {
-              "property": "name"
-            },
-            "foo%"
-          ]
+          "args": [{ "property": "name" }, "foo%"]
         }
       ]
     },
     {
       "op": ">",
-      "args": [
-        {
-          "property": "value"
-        },
-        10
-      ]
+      "args": [{ "property": "value" }, 10]
     }
   ]
 }

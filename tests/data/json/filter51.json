@@ -1,13 +1,4 @@
 {
   "op": "a_containedBy",
-  "args": [
-    {
-      "property": "values"
-    },
-    [
-      "a",
-      "b",
-      "c"
-    ]
-  ]
+  "args": [{ "property": "values" }, ["a", "b", "c"]]
 }

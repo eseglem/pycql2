@@ -1,9 +1,4 @@
 {
   "op": ">=",
-  "args": [
-    {
-      "property": "value"
-    },
-    10
-  ]
+  "args": [{ "property": "value" }, 10]
 }

@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/tests.yaml
+
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: poetry
+
+      - name: Install dependencies
+        run: poetry install --no-dev
+
+      - name: Get release version
+        id: release-version
+        run: echo "RELEASE_VERSION=v$(poetry version --short)" >> "$GITHUB_OUTPUT"
+
+      - name: Build package
+        run: poetry build
+
+      - name: Upload the files to the release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ github.workspace }}/dist/*
+          tag: ${{ steps.release-version.outputs.RELEASE_VERSION }}
+          commit: ${{ github.sha }}
+          omitBody: true
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

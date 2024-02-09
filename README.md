@@ -14,26 +14,36 @@ When parsing cql2-text to cql2-json.
     - `... NOT IN ...` become `NOT ... IN ...`
     - `... IS NOT NULL` becomes `NOT ... IS NULL`
 - Negative arithmetic operands become a multiply by -1: `{"op": "*", "params": [-1, <arithmetic_operand>]}`
+- Within a Character Literal, the character (`'` or `\`) used to escape a single quote is not preserved.
+    - Any `''` will become `\'`
 
 The cql2-text output from the pydantic models is opinionated and explicit. These choices have been made to keep the logic simple while ensuring the correctness of the output.
 
 - All property names are double quoted `"`.
+- Character Literals escape single quotes with a backslash `\'`.
 - Parenthesis `()` are placed around all comparison and arithmetic operations.
-    - This means that many outputs include a set of parentheses around the whole string. While this is not ideal, it is also not incorrect. When more tests are in place, they can be used to determine if a safe and easy way exists to remove them.
+    - This means that many outputs include a set of parentheses around the whole string.
+    - This may not be not ideal, but it is also not incorrect.
+    - Additional testing may be done in the future to determine if a safe and easy way exists to remove them.
 - Timestamps always contain decimal seconds out to 6 decimal places even when 0: `.000000`. It uses `strftime` with `%f` currently. Logic may be added later to adjust this.
 - Floats ending in `.0` will include the `.0` in the text. Where other libraries such as `shapely` will not include them in WKT.
 
 The cql2-text spec was not strictly followed for WKT. Some tweaks were made to increase it is compatible with `geojson-pydantic`, as well as accept the WKT output.
 
-- Added optional `Z` to each geometry. It doesn't enforce 2d / 3d, just allows the character to be there.
+- Added optional `Z` to each geometry.
+    - This does not enforce 2d / 3d, just allows the character to be there.
 - LineString coordinates require a minimum of 2 coordinates.
-- Added 'Linear Ring' for use in Polygons with a minimum of 4 coordinates. It doesn't enforce the ring being closed, just that it has enough coordinates to be one.
+- Added 'Linear Ring' for use in Polygons with a minimum of 4 coordinates.
+    - This does not enforce the ring being closed, just that it contains enough coordinates to be one.
 - Moved BBOX so it cannot be included in GeometryCollection.
-- Moved GeometryCollection to not allow nesting, until support is added to `geojson-pydantic`.
+- Added alternative MultiPoint syntax to maintain compatibility with other spatial tools and libraries.
+    - Allows reading of `MUTLIPOINT(0 0, 1 1)` without the inner parenthesis.
+    - This may be removed in the future if it is no longer necessary for compatibility. Removal will be considered a breaking change and be versioned as such.
+    - Note: Output will always include the inner parenthesis (via `geojson-pydantic`).
 
 There are a few things which **may** be issues with the spec but have not been fully addressed yet.
 
-- (Partially addressed) `spatial_literal` includes `geometry_collection` and `bbox`, and `geometry_collection` allows for all `spatial_literal` within it. But `bbox` does not seem to be a part of WKT. And at least within GeoJSON, nested `GeometryCollection` "SHOULD be avoided". This would mean the `cql2-text -> cql2-json` conversion would break where `geojson-pydantic` doesn't accept these cases.
+- `spatial_literal` includes `bbox`, and `geometry_collection` allows for all `spatial_literal` within it. But `bbox` does not seem to be a part of WKT. This would mean the `cql2-text -> cql2-json` conversion would break where `geojson-pydantic` doesn't accept these cases.
 - The spec does not allow for `EMPTY` geometries.
 
 ## Testing
@@ -45,7 +55,6 @@ Each file in `tests/data/json/` is a standalone cql2-json example. There will be
 While 100% of the lines of code are covered, more complex examples with more nested logic will be added in the future. As well as more variety to various inputs, the current examples are mostly PropertyRef and numbers. Such as:
 
 - More complex identifiers with `_`, `.`, `:`, and non ascii letters.
-- Character literals with escaped quote.
 - Deeply nested logic.
 - Each type of `scalar_expression` on each side of a `binary_comparison_predicate`, etc.
 

@@ -1,6 +1,4 @@
 {
   "op": "isNull",
-  "args": {
-    "property": "value"
-  }
+  "args": [{ "property": "value" }]
 }

@@ -1,13 +1,10 @@
 {
   "op": "<>",
   "args": [
-    {"property":"value"},
+    { "property": "value" },
     {
       "op": "*",
-      "args": [
-        22.1,
-        {"property":"foo"}
-      ]
+      "args": [22.1, { "property": "foo" }]
     }
   ]
 }

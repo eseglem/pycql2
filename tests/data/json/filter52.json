@@ -1,4 +1,0 @@
-{
-  "op": "a_contains",
-  "args": [{ "property": "values" }, ["a", "b", "c"]]
-}

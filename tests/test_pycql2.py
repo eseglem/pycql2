@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import pytest
@@ -17,15 +16,6 @@ BAD_JSON_DIR = Path("tests/bad_data/json")
 BAD_TEXT_DIR = Path("tests/bad_data/text")
 bad_json_files = sorted(_.name for _ in BAD_JSON_DIR.glob("*.json"))
 bad_text_files = sorted(_.name for _ in BAD_TEXT_DIR.glob("*.txt"))
-
-
-def compare(a: str, b: str) -> None:
-    """Strips whitespace and unquotes columns for comparisons"""
-    whitespace_regex = re.compile(r"\s")
-    quote_regex = re.compile(r"\"([a-zA-Z][a-zA-Z0-9_-]*)\"")
-    a = whitespace_regex.sub("", quote_regex.sub(r"\1", a))
-    b = whitespace_regex.sub("", quote_regex.sub(r"\1", b))
-    assert a == b
 
 
 @pytest.mark.parametrize("file_name", json_files)

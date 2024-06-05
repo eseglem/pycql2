@@ -35,13 +35,12 @@ coverage = { version = ">=7.2", optional = true, extras = ["toml"] }
 pytest-cov = { version = ">=4.0", optional = true }
 hypothesis = { version = ">=6.94.0", optional = true }
 hypofuzz = { version = ">=24.02.1", optional = true }
-black = { version = ">=23.1.0", optional = true }
 ruff = { version = ">=0.0.254", optional = true }
 mypy = { version = ">=1.1.0", optional = true }
 pre-commit = { version = ">=3.1.1", optional = true, python = ">=3.9" }
 
 [tool.poetry.extras]
-dev = ["black", "ruff", "mypy", "pre-commit"]
+dev = ["ruff", "mypy", "pre-commit"]
 test = ["pytest", "coverage", "pytest-cov", "hypothesis"]
 fuzz = ["hypofuzz"]
 

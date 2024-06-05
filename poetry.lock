@@ -1606,11 +1606,11 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linke
 test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-itertools", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [extras]
-dev = ["black", "mypy", "pre-commit", "ruff"]
+dev = ["mypy", "pre-commit", "ruff"]
 fuzz = ["hypofuzz"]
 test = ["coverage", "hypothesis", "pytest", "pytest-cov"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "7344abca0e673dafa65b2f6f1f8d1ebcf23feee0df6137788f5d8923f921bdeb"
+content-hash = "f90343936d03fed2538cf050b0b5b0b0afb07e2c17771d9bec50ecafa86920d0"

@@ -8,3 +8,12 @@ indent_size = 4
 
 [{*.json,*.yaml,*.yml}]
 indent_size = 2
+
+# Ignore lark files
+[*.lark]
+charset = unset
+insert_final_newline = unset
+end_of_line = unset
+indent_style = unset
+trim_trailing_whitespace = unset
+indent_size = unset
